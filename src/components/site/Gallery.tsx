@@ -138,6 +138,7 @@ export function Gallery({ items }: Readonly<{ items: Item[] }>) {
               <button type="button" onClick={() => step(1)} aria-label="Next artwork">
                 →
               </button>
+              {/* On phones this same button sits in the top-right corner (globals.css). */}
               <button type="button" onClick={() => dialog.current?.close()} className="lightbox-close">
                 Close
               </button>

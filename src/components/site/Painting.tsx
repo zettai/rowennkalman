@@ -53,12 +53,12 @@ export function Painting({ image, src, srcSet, sizes, layout = "natural", fit = 
   return (
     <span
       className={`fi ${layout === "fill" ? "fi-fill" : "fi-natural"} ${className ?? ""}`}
+      data-fit={fit}
       style={{
-        // The preview only while waiting; for "contain" it is sized like the painting, not the frame.
-        backgroundImage: image.blur && !loaded ? `url("${image.blur}")` : undefined,
-        backgroundSize: fit === "contain" ? "contain" : undefined,
+        // The preview only while waiting, drawn (blurred) by .fi::before in globals.css.
+        ...(image.blur && !loaded ? { "--fi-blur": `url("${image.blur}")` } : {}),
         aspectRatio: layout === "natural" ? `${image.width} / ${image.height}` : undefined,
-      }}
+      } as React.CSSProperties}
     >
       {srcSet ? (
         <PlainImage

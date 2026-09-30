@@ -33,7 +33,7 @@ describe("Painting", () => {
   it("shows the blurred preview at once and fades the picture in when it loads", async () => {
     const { container } = render(<Painting image={image(1)} src="/img/1.jpg" sizes="100vw" />);
     const frame = container.querySelector(".fi") as HTMLElement;
-    expect(frame.style.backgroundImage).toContain("data:image/jpeg;base64,AAAA");
+    expect(frame.style.getPropertyValue("--fi-blur")).toContain("data:image/jpeg;base64,AAAA");
     const img = screen.getByAltText("Painting 1 alt");
     expect(img).toHaveAttribute("data-loaded", "false");
     expect(img).toHaveAttribute("loading", "lazy");
@@ -42,7 +42,7 @@ describe("Painting", () => {
     await waitFor(() => expect(img).toHaveAttribute("data-loaded", "true"));
     now.mockRestore();
     expect(img).toHaveAttribute("data-instant", "false");
-    expect(frame.style.backgroundImage).toBe(""); // the preview goes once the picture is there
+    expect(frame.style.getPropertyValue("--fi-blur")).toBe(""); // the preview goes once the picture is there
   });
   it("shows a picture that arrives at once (browser cache) without the fade", async () => {
     render(<Painting image={image(4)} src="/img/4.jpg" sizes="100vw" />);

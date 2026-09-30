@@ -372,6 +372,15 @@ main:has(.portfolio) + .site-footer {
 
 /* Lightbox */
 
+/*
+ * While the lightbox is open the page behind must not move. The dialog has nothing to scroll,
+ * so on phones every vertical drag on it (even a slightly-off tap on the arrows) was passed on
+ * to the page underneath (2026-09-30, Galaxy Fold cover screen). The scroll position is kept.
+ */
+html:has(dialog.lightbox[open]) {
+  overflow: hidden;
+}
+
 .lightbox {
   width: 100vw;
   height: 100dvh;
@@ -379,6 +388,11 @@ main:has(.portfolio) + .site-footer {
   max-height: none;
   margin: 0;
   padding: var(--gutter);
+  /* A long description may scroll inside the lightbox, but never hands scrolling to the page. */
+  overflow: auto;
+  overscroll-behavior: contain;
+  /* Keep the arrows clear of the phone's gesture area. */
+  padding-bottom: max(var(--gutter), env(safe-area-inset-bottom));
   border: 0;
   background: var(--bg);
   color: var(--ink);
@@ -402,6 +416,12 @@ main:has(.portfolio) + .site-footer {
 
 .lightbox-image img {
   object-fit: contain;
+}
+
+/* The painting sits on the page colour, as before the preview/fade: no grey frame around a
+   "contain" picture. The blurred preview still shows (sized like the painting) while it loads. */
+.lightbox-image .fi {
+  background-color: transparent;
 }
 
 .lightbox-text {
@@ -431,11 +451,30 @@ main:has(.portfolio) + .site-footer {
   cursor: pointer;
   padding: 0.5rem;
   color: inherit;
+  /* A comfortable finger target, so a near-miss is still a tap and not a drag. */
+  min-width: 44px;
+  min-height: 44px;
 }
 
 .lightbox-close {
   text-decoration: underline;
   text-underline-offset: 5px;
+}
+
+/*
+ * Phones: the Close link at the bottom is easy to miss, so the same button moves to the
+ * top-right corner (where people look for it), still the underlined word, with a finger-sized
+ * tap area.
+ */
+@media (max-width: 767px) {
+  .lightbox-close {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    z-index: 1;
+    min-height: 44px;
+    padding: 0.5rem 0.75rem;
+  }
 }
 
 /* Research */
@@ -620,9 +659,37 @@ main:has(.portfolio) + .site-footer {
   display: block;
   overflow: hidden;
   background-color: #f2f2f2;
+  /* Lets the preview's blur scale with the picture's width (cqi units below). */
+  container-type: inline-size;
+}
+
+/*
+ * The loading preview: a ~20 px JPEG stretched over the frame looks blocky, so it is blurred by
+ * a fraction of the picture's width (a thumbnail and the full-screen lightbox look equally soft)
+ * and slightly enlarged so the blur's faded edges fall outside the frame. The picture itself is
+ * painted above it and fades in; the preview is removed once it has loaded.
+ */
+.fi::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--fi-blur, none);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+  filter: blur(18px);
+  filter: blur(max(10px, 4cqi));
+  transform: scale(1.12);
+  pointer-events: none;
+}
+
+/* "contain" (the lightbox): sized like the painting, not the frame, and not enlarged. Nothing
+   clips it there, so a smaller blur keeps the haze close to the painting's edges. */
+.fi[data-fit="contain"]::before {
+  background-size: contain;
+  transform: none;
+  filter: blur(14px);
+  filter: blur(max(14px, 1.6cqi));
 }
 
 .fi-fill {
