@@ -1,6 +1,6 @@
 # rowennkalman.com revamp — plan
 
-## Status (2026-09-29)
+## Status (2026-09-29): LIVE on rowennkalman.com from `master`; only the real-email check remains (see docs/AUDIT.md)
 
 MVP built and integrated on branch `revamp`: public pages + the cloud agent's admin/content backend
 (`docs/admin-REPORT.md`), magic-link sign-in, "use a painting from your portfolio" on every

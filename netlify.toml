@@ -1,7 +1,17 @@
-# Next.js on Netlify (the Next.js runtime is detected automatically).
+# Next.js on Netlify. This site was created in 2019 as a static site, so nothing is saved in its
+# build settings: the build command, the publish folder and the Next.js runtime are declared here.
+# The runtime needs publish = ".next"; without it Netlify publishes the repo root and the plugin
+# stops with "publish directory cannot be the same as the base directory".
 [build]
   command = "npm run build"
   publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# The site was created in 2019 and Netlify defaulted it to Node 10. Next.js 15 needs 20+.
+[build.environment]
+  NODE_VERSION = "22"
 
 # Old thesis landing page: one permanent hop to /research. The PDFs under /tesis/*.pdf are
 # real files and are not matched (no splat). Netlify treats /tesis and /tesis/ the same.

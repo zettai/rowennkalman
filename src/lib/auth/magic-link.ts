@@ -3,6 +3,7 @@ import path from "node:path";
 import { SignJWT, jwtVerify, errors } from "jose";
 import { issueSession, sessionSecret } from "./session";
 import { safeNext } from "./login-next";
+import { withSenderName } from "@/lib/contact/mailer";
 import { clientIp, createRateLimiter, type RateLimiter } from "@/lib/rate-limit";
 
 /**
@@ -93,10 +94,12 @@ export class ResendLinkMailer implements LinkMailer {
       body: JSON.stringify({
         from: this.config.from,
         to: [to],
-        subject: "Your link to edit your website",
+        subject: "Your sign-in link for rowennkalman.com",
         text:
-          `Open this link to edit your website:\n\n${url}\n\n` +
-          `It works for 15 minutes. If you did not ask for it, you can ignore this email.`,
+          `Hello,\n\nSomeone asked to sign in to edit rowennkalman.com with this email address. ` +
+          `If that was you, open this link:\n\n${url}\n\n` +
+          `The link works for 15 minutes. If you did not ask for it, you can ignore this email; nothing was changed.\n\n` +
+          `Rowenn Beth Kalman, rowennkalman.com`,
       }),
       signal: AbortSignal.timeout(10_000),
     });
@@ -124,7 +127,7 @@ export function getLinkMailer(env: Env = process.env): LinkMailer {
   if (!apiKey) return new ConsoleLinkMailer(env.ROWENNKALMAN_DATA_DIR?.trim() || path.join(process.cwd(), ".data"));
   const from = env.ROWENNKALMAN_CONTACT_FROM?.trim();
   if (!from) throw new Error("ROWENNKALMAN_CONTACT_FROM must be set with the Resend key.");
-  return new ResendLinkMailer({ apiKey, from });
+  return new ResendLinkMailer({ apiKey, from: withSenderName(from) });
 }
 
 export type LinkRequestOutcome = { ok: true } | { ok: false; reason: "limited" | "invalid" };

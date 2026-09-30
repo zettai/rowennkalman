@@ -6,6 +6,11 @@ export interface Mailer {
 
 export class MailerError extends Error {}
 
+/** "web@example.com" becomes "Rowenn Beth Kalman <web@example.com>"; a value that already has a name is kept. */
+export function withSenderName(from: string, name = "Rowenn Beth Kalman"): string {
+  return from.includes("<") ? from : `${name} <${from}>`;
+}
+
 const RESEND_URL = "https://api.resend.com/emails";
 
 function subjectFor(m: ContactMessage) {
@@ -52,5 +57,5 @@ export function getMailer(env: Record<string, string | undefined> = process.env)
   const to = env.ROWENNKALMAN_CONTACT_TO?.trim();
   const from = env.ROWENNKALMAN_CONTACT_FROM?.trim();
   if (!to || !from) throw new MailerError("ROWENNKALMAN_CONTACT_TO and ROWENNKALMAN_CONTACT_FROM must be set with the Resend key.");
-  return new ResendMailer({ apiKey, to, from });
+  return new ResendMailer({ apiKey, to, from: withSenderName(from) });
 }

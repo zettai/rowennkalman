@@ -120,3 +120,11 @@ describe("mailers", () => {
     expect(() => getMailer({ ROWENNKALMAN_RESEND_API_KEY: "k" })).toThrow(/CONTACT_TO/);
   });
 });
+
+describe("sender name", () => {
+  it("adds the site's name to a bare address and keeps an existing one", async () => {
+    const { withSenderName } = await import("@/lib/contact/mailer");
+    expect(withSenderName("web@rowennkalman.com")).toBe("Rowenn Beth Kalman <web@rowennkalman.com>");
+    expect(withSenderName("Someone <a@b.co>")).toBe("Someone <a@b.co>");
+  });
+});

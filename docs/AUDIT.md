@@ -86,3 +86,12 @@ Final state: 0 S1, 0 S2 (the text-review item is Rowenn's first task), 0 S3 (the
 - **T: S3Store against Scaleway: verified.** With the real bucket and two separate server instances: both read the content through S3; two simultaneous saves with the same token gave exactly one 200 and one 409; a stale token afterwards gave 409; a fresh token saved. Scaleway honours the conflict check.
 - Bucket `rowennkalman` (fr-par) in its own Scaleway project `rowennkalman`, with an application key limited to that project. `art/*` is public-read; `content.json` and the bucket listing return 403. Seeded with the real content and 17 photos (`scripts/seed-s3.mjs --from .data`).
 - Still open: real email (Resend) and the Netlify runtime, including the one-hop `/tesis/` redirect.
+
+### Live on rowennkalman.com (2026-09-29)
+
+`master` (fast-forwarded from `revamp`) is what production builds. Netlify needed three things the old static site never had, all now in `netlify.toml`: Node 22 (the 2019 site defaulted to Node 10), the build command, and `publish = ".next"` together with `@netlify/plugin-nextjs`. Without the plugin the build ran but published static files (0 functions, 404 everywhere); without `publish` the plugin refuses to run.
+
+Verified on production: all pages 200; content and photos from the bucket; images resized by the Netlify Image CDN; `/tesis` and `/tesis/` are one 301 to `/research`; both thesis PDFs serve (byte-identical to the repo copy); robots.txt, sitemap.xml, canonical URL, security headers, 404 page; `www` redirects to the bare domain.
+
+- **T: Netlify runtime: verified** (except real sign-in, below).
+- **Still open: real email.** Sign-in link and contact form through Resend on the live domain, to both addresses, including spam folders. The Resend key and the Resend-dependent settings are in Netlify's environment.
