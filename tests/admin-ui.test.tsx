@@ -66,6 +66,11 @@ describe("page editor", () => {
     await user.click(screen.getByRole("button", { name: "Save changes" }));
     await waitFor(() => expect(screen.getByTestId("save-status")).toHaveTextContent(CONFLICT_MESSAGE));
     expect(screen.getByRole("button", { name: "Reload" })).toBeInTheDocument();
+    // A prominent notice at the top too, with its own reload button, warning that reloading drops the edit.
+    const notice = screen.getByTestId("outdated-notice");
+    expect(notice).toHaveTextContent("Not saved: this page was changed somewhere else");
+    expect(notice).toHaveTextContent("copy any text you want to keep");
+    expect(within(notice).getByRole("button", { name: "Reload the latest version" })).toBeInTheDocument();
     // The edit is kept.
     expect(screen.getByLabelText("Your name (big title)")).toHaveValue(`${content.home.heroTitle}!`);
   });
@@ -157,5 +162,24 @@ describe("choosing paintings from the portfolio", () => {
     await user.click(screen.getByRole("button", { name: "Save changes" }));
     await waitFor(() => expect(calls).toHaveLength(1));
     expect((calls[0]!.value as { image: { key: string } }).image.key).toBe(art.image.key);
+  });
+});
+
+describe("stale-page warning", () => {
+  it("warns when the site was saved elsewhere since the page was opened, on returning to the tab", async () => {
+    const newer = { ...content, updatedAt: "2099-01-01T00:00:00.000Z" };
+    globalThis.fetch = jest.fn(async () => ({ ok: true, status: 200, json: async () => ({ content: newer }) }) as Response) as unknown as typeof fetch;
+    render(<PageEditor page="home" content={content} imageUrls={urls} />);
+    expect(screen.queryByTestId("outdated-notice")).not.toBeInTheDocument();
+    window.dispatchEvent(new Event("focus"));
+    await waitFor(() => expect(screen.getByTestId("outdated-notice")).toHaveTextContent("This page was changed somewhere else"));
+  });
+
+  it("stays quiet when nothing changed", async () => {
+    globalThis.fetch = jest.fn(async () => ({ ok: true, status: 200, json: async () => ({ content }) }) as Response) as unknown as typeof fetch;
+    render(<PageEditor page="home" content={content} imageUrls={urls} />);
+    window.dispatchEvent(new Event("focus"));
+    await new Promise((r) => setTimeout(r, 50));
+    expect(screen.queryByTestId("outdated-notice")).not.toBeInTheDocument();
   });
 });

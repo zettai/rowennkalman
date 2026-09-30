@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import s from "../admin.module.css";
 import type { SaveStatus } from "./usePageEditor";
 import { useLiveCheck, type LiveState } from "./useLiveCheck";
+import { useStaleCheck } from "./useStaleCheck";
 
 export const CONFLICT_MESSAGE = "This page was changed in another tab. Reload to see the latest.";
 
@@ -16,12 +17,24 @@ type Props = {
   busy?: boolean;
   status: SaveStatus;
   onSave: () => void;
+  /** The content version this page was loaded (or last saved) with. */
+  version: string;
   children: ReactNode;
 };
 
 /** Page frame: heading, form, sticky save bar, unsaved-changes guard. */
-export function EditorShell({ title, description, publicPath, dirty, busy, status, onSave, children }: Props) {
+export function EditorShell({ title, description, publicPath, dirty, busy, status, onSave, version, children }: Props) {
   const live = useLiveCheck(publicPath, status.kind === "saved" ? status.version : undefined);
+  const newer = useStaleCheck(version);
+  const conflictRef = useRef<HTMLDivElement>(null);
+  const outdated = status.kind === "conflict" || newer !== null;
+  // Bring the notice into view when a save is refused, so it isn't missed in the bottom bar.
+  useEffect(() => {
+    if (status.kind === "conflict") {
+      conflictRef.current?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+      conflictRef.current?.focus();
+    }
+  }, [status.kind]);
   const [pendingHref, setPendingHref] = useState<string | null>(null);
   const leaving = useRef(false);
   const stayRef = useRef<HTMLButtonElement>(null);
@@ -86,6 +99,23 @@ export function EditorShell({ title, description, publicPath, dirty, busy, statu
       </p>
       <h1 className={s.h1}>{title}</h1>
       <p className={s.lead}>{description}</p>
+
+      {outdated && (
+        <div ref={conflictRef} tabIndex={-1} className={s.noticeWarn} role="alert" data-testid="outdated-notice">
+          <p style={{ fontWeight: 700, margin: "0 0 4px" }}>
+            {status.kind === "conflict" ? "Not saved: this page was changed somewhere else" : "This page was changed somewhere else"}
+          </p>
+          <p style={{ margin: "0 0 10px" }}>
+            {status.kind === "conflict"
+              ? "Someone (maybe you, in another tab or on another device) saved a newer version first. Reload to get it, then make your change again."
+              : "A newer version was saved since you opened this page (maybe in another tab or on another device). Reload before you edit, so nothing is lost."}
+            {dirty && " Reloading drops the changes you made here, so copy any text you want to keep first."}
+          </p>
+          <button type="button" className={s.button} onClick={reload}>
+            Reload the latest version
+          </button>
+        </div>
+      )}
 
       {pendingHref && (
         <div className={s.noticeWarn} role="alertdialog" aria-labelledby="leave-title" aria-describedby="leave-text">

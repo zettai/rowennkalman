@@ -104,8 +104,10 @@ test("two tabs: the second save gets the conflict message", async ({ page, conte
   await other.getByLabel("Line under your name").fill("Tab B edit");
   await other.getByRole("button", { name: "Save changes" }).click();
   await expect(other.getByTestId("save-status")).toContainText("This page was changed in another tab. Reload to see the latest.");
+  // The refusal also shows at the top of the page, not only in the bottom bar.
+  await expect(other.getByTestId("outdated-notice")).toContainText("Not saved: this page was changed somewhere else");
   // Reload brings the latest, including tab A's title.
-  await other.getByRole("button", { name: "Reload" }).click();
+  await other.getByTestId("outdated-notice").getByRole("button", { name: "Reload the latest version" }).click();
   await expect(other.getByLabel("Big title")).toHaveValue(/^Tab A/);
 });
 
