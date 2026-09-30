@@ -129,3 +129,21 @@ describe("Contact form (public site)", () => {
     expect(screen.getByRole("button", { name: "Send" })).toBeInTheDocument();
   });
 });
+
+jest.mock("next/navigation", () => ({ usePathname: () => "/" }));
+
+describe("mobile menu", () => {
+  it("closes after a page is chosen", async () => {
+    const { NavLinks } = await import("@/components/site/NavLinks");
+    const { container } = render(
+      <details open>
+        <summary>Menu</summary>
+        <NavLinks items={[{ href: "/", label: "Home" }, { href: "/about", label: "About" }]} />
+      </details>,
+    );
+    const details = container.querySelector("details")!;
+    expect(details).toHaveAttribute("open");
+    fireEvent.click(screen.getByRole("link", { name: "About" }));
+    expect(details).not.toHaveAttribute("open");
+  });
+});

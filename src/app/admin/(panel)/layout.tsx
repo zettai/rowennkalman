@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import s from "../admin.module.css";
 import { requireSession } from "@/lib/auth/server";
+import { SkipVisitCount } from "../_components/SkipVisitCount";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +10,7 @@ export default async function PanelLayout({ children }: Readonly<{ children: Rea
   await requireSession();
   return (
     <>
+      <SkipVisitCount />
       <a href="#main" className={s.skip}>
         Skip to content
       </a>

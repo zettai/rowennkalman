@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import s from "../admin.module.css";
 import { PAGES } from "@/lib/content/fields";
 import { getStore } from "@/lib/store";
+import { VisitsCard } from "../_components/VisitsCard";
 
 export default async function Dashboard() {
   const content = await getStore().getContent();
@@ -29,6 +31,11 @@ export default async function Dashboard() {
           </li>
         ))}
       </ul>
+      <div style={{ marginTop: 24 }}>
+        <Suspense fallback={null}>
+          <VisitsCard />
+        </Suspense>
+      </div>
     </>
   );
 }

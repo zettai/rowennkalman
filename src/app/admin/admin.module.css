@@ -199,6 +199,53 @@
   margin: 0;
 }
 
+/* Visitors (dashboard) */
+.statTotals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 32px;
+  margin: 12px 0 16px;
+}
+.statTotals dt {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.statTotals dd {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.statLists {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  margin-bottom: 12px;
+}
+.statListTitle {
+  font-size: 1rem;
+  margin: 0 0 6px;
+}
+.statList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.statList li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--line);
+}
+.statList li span:first-child {
+  overflow-wrap: anywhere;
+}
+.statList li span:last-child {
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
 /* Sections and fields */
 .section {
   background: var(--surface);

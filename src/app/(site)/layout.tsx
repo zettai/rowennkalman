@@ -4,6 +4,8 @@ import { getSiteContent, imageUrl, siteUrl } from "@/components/site/content";
 import { jsonLdGraph, openGraphFor, personJsonLd, websiteJsonLd } from "@/components/site/seo";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
+import { CountPageViews } from "@/components/site/CountPageViews";
+import { trackerUrl } from "@/lib/stats/goatcounter";
 import "@/styles/globals.css";
 
 // Always render from the latest content: Netlify's cached copies could show an old version
@@ -30,6 +32,7 @@ export default async function SiteLayout({ children }: Readonly<{ children: Reac
   const content = await getSiteContent();
   const { site } = content;
   const base = siteUrl();
+  const tracker = trackerUrl();
   return (
     <>
       <script
@@ -43,6 +46,9 @@ export default async function SiteLayout({ children }: Readonly<{ children: Reac
       <Header site={site} />
       <main id="main">{children}</main>
       <Footer site={site} />
+      {/* Visit counter (self-hosted GoatCounter): no cookies; off when the variable is unset. */}
+      {tracker && <script async data-goatcounter={`${tracker}/count`} src={`${tracker}/count.js`} />}
+      {tracker && <CountPageViews />}
     </>
   );
 }
