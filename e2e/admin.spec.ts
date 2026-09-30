@@ -34,6 +34,9 @@ test("edit home.heroTitle, save, see it on /", async ({ page }) => {
   await expect(page.getByTestId("save-status")).toContainText("Saved. Your changes are live");
   await page.goto("/");
   await expect(page.getByTestId("hero-title")).toHaveText(title);
+  // The page says which save it shows; it must be the one just made.
+  const saved = (await (await page.request.get("/api/admin/content")).json()) as { content: { updatedAt: string } };
+  await expect(page.locator('meta[name="content-version"]')).toHaveAttribute("content", saved.content.updatedAt);
 });
 
 test("add an artwork, move it up, see the order on /portfolio, delete it and its image", async ({ page, request }) => {

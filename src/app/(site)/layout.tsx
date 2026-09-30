@@ -5,8 +5,13 @@ import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import "@/styles/globals.css";
 
+// Always render from the latest content: Netlify's cached copies could show an old version
+// for the first visit after a save (stale-while-revalidate). See docs/AUDIT.md.
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
-  const { site, home } = await getSiteContent();
+  const content = await getSiteContent();
+  const { site, home } = content;
   const hero = home.heroImage;
   return {
     metadataBase: siteUrl(),
@@ -19,6 +24,8 @@ export async function generateMetadata(): Promise<Metadata> {
       images: hero ? [{ url: imageUrl(hero.key), width: hero.width, height: hero.height, alt: hero.alt }] : undefined,
     },
     twitter: { card: hero ? "summary_large_image" : "summary" },
+    // Which save this page shows: compare with the admin's save time when debugging.
+    other: { "content-version": content.updatedAt },
   };
 }
 

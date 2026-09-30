@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { getSiteContent, imageUrl, paragraphs } from "@/components/site/content";
 import { Gallery } from "@/components/site/Gallery";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   const { site } = await getSiteContent();
   return { title: site.nav.portfolio, alternates: { canonical: "/portfolio" } };

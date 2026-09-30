@@ -16,7 +16,13 @@ export function imageUrlsFor(store: ContentStore, content: Content): ImageUrls {
   return Object.fromEntries([...collectImageKeys(content)].map((k) => [k, store.imageUrl(k)]));
 }
 
-type HandlerResult = { status: number; body: unknown; changed?: boolean };
+type HandlerResult = {
+  status: number;
+  body: unknown;
+  changed?: boolean;
+  /** For the save log: the page as it was before this save (not sent to the browser). */
+  previous?: unknown;
+};
 
 const SaveBody = z.object({
   page: z.string(),
@@ -43,9 +49,14 @@ export async function handleSave(store: ContentStore, raw: unknown): Promise<Han
   }
   try {
     const { content, deletedImages } = await saveContent(store, next, expectedUpdatedAt);
-    // Clean up uploads that were abandoned earlier; never fails the save.
-    await sweepOrphanImages(store).catch((err) => console.error("Orphan sweep failed", err));
-    return { status: 200, body: { content, imageUrls: imageUrlsFor(store, content), deletedImages }, changed: true };
+    // Abandoned uploads are cleaned up by the route after the response (sweepAbandonedUploads),
+    // so the editor isn't kept waiting for a listing of the whole bucket.
+    return {
+      status: 200,
+      body: { content, imageUrls: imageUrlsFor(store, content), deletedImages },
+      changed: true,
+      previous: (current as Record<string, unknown>)[page],
+    };
   } catch (err) {
     if (err instanceof ConflictError) return { status: 409, body: { error: "conflict", currentUpdatedAt: err.currentUpdatedAt } };
     throw err;
@@ -85,4 +96,12 @@ export async function handleDiscardUpload(store: ContentStore, key: unknown): Pr
   }
   await store.deleteImage(key);
   return { status: 200, body: { deleted: key } };
+}
+
+/** Removes uploads never saved into content (after a grace period). Never throws. */
+export async function sweepAbandonedUploads(store: ContentStore): Promise<string[]> {
+  return sweepOrphanImages(store).catch((err) => {
+    console.error("Orphan sweep failed", err);
+    return [];
+  });
 }

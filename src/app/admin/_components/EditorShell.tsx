@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import s from "../admin.module.css";
 import type { SaveStatus } from "./usePageEditor";
+import { useLiveCheck, type LiveState } from "./useLiveCheck";
 
 export const CONFLICT_MESSAGE = "This page was changed in another tab. Reload to see the latest.";
 
@@ -20,6 +21,7 @@ type Props = {
 
 /** Page frame: heading, form, sticky save bar, unsaved-changes guard. */
 export function EditorShell({ title, description, publicPath, dirty, busy, status, onSave, children }: Props) {
+  const live = useLiveCheck(publicPath, status.kind === "saved" ? status.version : undefined);
   const [pendingHref, setPendingHref] = useState<string | null>(null);
   const leaving = useRef(false);
   const stayRef = useRef<HTMLButtonElement>(null);
@@ -118,7 +120,7 @@ export function EditorShell({ title, description, publicPath, dirty, busy, statu
       <div className={s.saveBar} data-save-bar>
         <div className={s.saveBarInner}>
           <div className={s.status} role="status" aria-live="polite" data-testid="save-status">
-            <StatusText status={status} dirty={dirty} busy={busy} onReload={reload} />
+            <StatusText status={status} dirty={dirty} busy={busy} onReload={reload} live={live} />
           </div>
           <div className={s.row}>
             <a className={s.buttonSecondary} href={publicPath} target="_blank" rel="noreferrer">
@@ -134,11 +136,30 @@ export function EditorShell({ title, description, publicPath, dirty, busy, statu
   );
 }
 
-function StatusText({ status, dirty, busy, onReload }: { status: SaveStatus; dirty: boolean; busy?: boolean; onReload: () => void }) {
+function StatusText({
+  status,
+  dirty,
+  busy,
+  onReload,
+  live,
+}: {
+  status: SaveStatus;
+  dirty: boolean;
+  busy?: boolean;
+  onReload: () => void;
+  live: LiveState | null;
+}) {
   switch (status.kind) {
     case "saving":
       return <span>Saving…</span>;
     case "saved":
+      if (live === "checking") return <span>Saved. Checking the site…</span>;
+      if (live === "slow")
+        return (
+          <span className={s.inlineStatusWarn}>
+            Saved, but the site hasn&apos;t shown it yet. Check again in a minute; if it still shows the old version, tell Luis.
+          </span>
+        );
       return <span className={s.inlineStatusOk}>Saved. Your changes are live on the site.</span>;
     case "conflict":
       return (

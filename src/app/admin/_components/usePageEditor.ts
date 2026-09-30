@@ -10,7 +10,7 @@ export type ImageUrls = Record<string, string>;
 export type SaveStatus =
   | { kind: "idle" }
   | { kind: "saving" }
-  | { kind: "saved" }
+  | { kind: "saved"; version?: string }
   | { kind: "conflict" }
   | { kind: "signedOut" }
   | { kind: "invalid"; message: string; issues: { path: string; message: string }[] }
@@ -64,7 +64,7 @@ export function usePageEditor<P extends PageKey>(page: P, initial: Content, init
       setSaved(body.content);
       setDraft(body.content[page]);
       setUrls((u) => ({ ...u, ...body.imageUrls }));
-      setStatus({ kind: "saved" });
+      setStatus({ kind: "saved", version: body.content.updatedAt });
     } else if (res.status === 409) {
       setStatus({ kind: "conflict" });
     } else if (res.status === 401) {

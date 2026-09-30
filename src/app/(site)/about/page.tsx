@@ -3,6 +3,8 @@ import { Fragment } from "react";
 import { getSiteContent, imageUrl, paragraphs } from "@/components/site/content";
 import { Painting } from "@/components/site/Painting";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   const { site } = await getSiteContent();
   return { title: site.nav.about, alternates: { canonical: "/about" } };

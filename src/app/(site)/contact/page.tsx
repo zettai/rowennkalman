@@ -3,6 +3,8 @@ import { getSiteContent, imageUrl, paragraphs } from "@/components/site/content"
 import { ContactForm } from "@/components/site/ContactForm";
 import { Painting } from "@/components/site/Painting";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   const { site } = await getSiteContent();
   return { title: site.nav.contact, alternates: { canonical: "/contact" } };

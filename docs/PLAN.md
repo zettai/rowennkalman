@@ -46,6 +46,21 @@ Grilled and agreed 2026-09-29. Source of design + content: Rowenn's Squarespace 
    Delete the Miniport template + placeholder pics. Photos in `assets/` go to the bucket,
    not git (reconcile: 20 originals vs ~26 images in the draft).
 
+## Debugging
+
+- Every public page carries `<meta name="content-version">`: the save it shows.
+- Function logs: `scripts/netlify.sh logs --source functions --function ___netlify-server-handler --since <ISO> --until <ISO> --json`
+  (token from the Keychain item `rowennkalman-netlify-token`, created 2026-09-30 with a 90-day expiry; it reaches the whole Netlify account).
+
+## Page caching (2026-09-30)
+
+Public pages render from the latest content, and Netlify's CDN keeps them for `PAGE_CDN_SECONDS`
+(next.config.ts; 1 hour since 2026-09-30, after a real save logged "purge":"purged") with tag `rk-pages` and **no** stale-while-revalidate. Every admin save
+purges the tag (`src/lib/cdn.ts`) and logs `purge` in the save line. Proven on a branch deploy: a
+cached page kept the old version after a content change until the purge, then switched at once, both
+with the API and from inside the function. The earlier Next ISR set-up served stale pages after a
+save; don't go back to it.
+
 ## Work split
 
 - **Cloud agent** (`zettai/claude-cloud`, `requests/rowennkalman-admin.md` → `demos/rowennkalman-admin/`):

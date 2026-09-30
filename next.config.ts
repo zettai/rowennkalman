@@ -6,6 +6,10 @@ import type { NextConfig } from "next";
 const imageBase = process.env.ROWENNKALMAN_PUBLIC_IMAGE_BASE?.trim();
 const remotePatterns = imageBase ? [new URL(`${imageBase.replace(/\/$/, "")}/**`)] : [];
 
+/** Cache tag on every public page; the save route purges it. Keep in sync with src/lib/cdn.ts. */
+const PAGE_CACHE_TAG = "rk-pages";
+const PAGE_CDN_SECONDS = 3600;
+
 const nextConfig: NextConfig = {
   images: { remotePatterns },
   poweredByHeader: false,
@@ -13,8 +17,17 @@ const nextConfig: NextConfig = {
   // FileStore seeds .data/ from these on first read; ship them with the server bundle.
   outputFileTracingIncludes: { "/**": ["./content/**"] },
   async headers() {
+    // Public pages: Netlify's CDN keeps each page for a short time (no stale-while-revalidate,
+    // so a cached copy is never shown after it expires), and every admin save purges the tag.
+    // The short max-age is a safety net in case a purge ever fails.
+    const cdn = [
+      { key: "Netlify-CDN-Cache-Control", value: `public, durable, s-maxage=${PAGE_CDN_SECONDS}` },
+      { key: "Netlify-Cache-Tag", value: PAGE_CACHE_TAG },
+    ];
+    const pages = ["/", "/about", "/portfolio", "/research", "/contact"].map((source) => ({ source, headers: cdn }));
     // No script-src here: Next inlines its bootstrap scripts. These parts are safe without nonces.
     return [
+      ...pages,
       {
         source: "/:path*",
         headers: [

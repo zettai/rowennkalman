@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { getSiteContent, imageUrl, paragraphs, type Content } from "@/components/site/content";
 import { Painting } from "@/components/site/Painting";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   const { site } = await getSiteContent();
   return { title: site.nav.research, alternates: { canonical: "/research" } };

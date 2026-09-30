@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getSiteContent, imageUrl } from "@/components/site/content";
 import { Painting } from "@/components/site/Painting";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 export default async function HomePage() {
