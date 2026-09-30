@@ -4,7 +4,7 @@ import { Gallery } from "@/components/site/Gallery";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { site } = await getSiteContent();
-  return { title: site.nav.portfolio };
+  return { title: site.nav.portfolio, alternates: { canonical: "/portfolio" } };
 }
 
 export default async function PortfolioPage() {

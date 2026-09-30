@@ -1,6 +1,9 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { getSiteContent, imageUrl } from "@/components/site/content";
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 export default async function HomePage() {
   const { home, portfolio } = await getSiteContent();
@@ -12,7 +15,9 @@ export default async function HomePage() {
     <>
       <section className="home-hero">
         <div className="home-hero-text">
-          <h1 className="display">{home.heroTitle}</h1>
+          <h1 className="display" data-testid="hero-title">
+            {home.heroTitle}
+          </h1>
           <p>{home.heroSubtitle}</p>
         </div>
         {home.heroImage && (

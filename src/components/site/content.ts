@@ -1,41 +1,22 @@
-// Public-site view of the content contract (requests/rowennkalman-admin.md in claude-cloud).
-// Temporary: at integration this reads from the cloud agent's getStore() and its Content type.
-import devContent from "./dev-content.json";
+// Public-site access to the content store. Server components only: getStore() reads
+// the bucket (or ./.data locally). Every admin save revalidates these pages.
+import { getStore } from "@/lib/store";
+import type { Content } from "@/lib/content/schema";
 
-export type ImageRef = { key: string; width: number; height: number; alt: string };
+export type { Artwork, Content, ImageRef } from "@/lib/content/schema";
+export { paragraphs } from "@/lib/content/schema";
 
-export type Artwork = {
-  id: string;
-  image: ImageRef;
-  title: string;
-  medium: string;
-  size: string;
-  year: string;
-  description: string;
-};
-
-export type Content = typeof devContent & {
-  home: { heroImage: ImageRef | null; featured: string[] };
-  contact: { image: ImageRef | null };
-  research: { image: ImageRef | null };
-  portfolio: { artworks: Artwork[] };
-};
+/** The site's public address: set explicitly, else Netlify's URL, else the domain. */
+export function siteUrl(): URL {
+  return new URL(process.env.ROWENNKALMAN_SITE_URL?.trim() || process.env.URL?.trim() || "https://rowennkalman.com");
+}
 
 export async function getSiteContent(): Promise<Content> {
-  return devContent as Content;
+  return getStore().getContent();
 }
 
-// "art/<file>" -> URL. Dev serves the originals from public/_dev-art (a symlink to assets/).
 export function imageUrl(key: string): string {
-  const file = key.replace(/^art\//, "");
-  return `/_dev-art/${encodeURIComponent(file)}`;
-}
-
-export function paragraphs(text: string): string[] {
-  return text
-    .split(/\n\s*\n/)
-    .map((p) => p.trim())
-    .filter(Boolean);
+  return getStore().imageUrl(key);
 }
 
 // One list for the header and the footer, so the two never drift apart.

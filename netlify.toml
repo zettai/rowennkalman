@@ -1,0 +1,18 @@
+# Next.js on Netlify (the Next.js runtime is detected automatically).
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+# Old thesis landing page: one permanent hop to /research. The PDFs under /tesis/*.pdf are
+# real files and are not matched (no splat). Netlify treats /tesis and /tesis/ the same.
+[[redirects]]
+  from = "/tesis"
+  to = "/research"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/tesis/index.html"
+  to = "/research"
+  status = 301
+  force = true

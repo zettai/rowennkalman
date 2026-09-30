@@ -1,5 +1,16 @@
 # rowennkalman.com revamp — plan
 
+## Status (2026-09-29)
+
+MVP built and integrated on branch `revamp`: public pages + the cloud agent's admin/content backend
+(`docs/admin-REPORT.md`), magic-link sign-in, "use a painting from your portfolio" on every
+picture field, chosen paintings on Home. Real content lives in the local store `.data/` (gitignored).
+110 unit + 9 e2e tests pass (`npm test`, `npx playwright test e2e/admin.spec.ts`).
+
+To go live (needs Luis): ~~Scaleway bucket + key → seed~~ done 2026-09-29 (see docs/AUDIT.md, "Go-live checks");
+Resend domain + sending key; Netlify env vars (names in `.env.example`) for build and functions;
+Netlify build settings to Next.js; merge `revamp` → `master`.
+
 Grilled and agreed 2026-09-29. Source of design + content: Rowenn's Squarespace draft
 (`harpsichord-fiddle-8h7n.squarespace.com`, private, trial ends 2026-10-13).
 

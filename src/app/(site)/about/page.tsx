@@ -5,7 +5,7 @@ import { getSiteContent, imageUrl, paragraphs } from "@/components/site/content"
 
 export async function generateMetadata(): Promise<Metadata> {
   const { site } = await getSiteContent();
-  return { title: site.nav.about };
+  return { title: site.nav.about, alternates: { canonical: "/about" } };
 }
 
 // Pictures go after these paragraphs (1-based), in order; extra pictures follow the text.

@@ -2,21 +2,44 @@
   "name": "rowennkalman",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "tsc --noEmit",
+    "test": "jest",
+    "e2e": "playwright test",
+    "hash-password": "node scripts/hash-password.mjs",
+    "placeholders": "node scripts/make-placeholders.mjs"
   },
   "dependencies": {
-    "next": "15.5.26",
-    "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "@aws-sdk/client-s3": "^3.1143.0",
+    "jose": "^5.10.0",
+    "next": "^15.5.26",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@types/node": "^22",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "typescript": "^5"
+    "@eslint/eslintrc": "^3.3.7",
+    "@playwright/test": "^1.56.1",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.20.4",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^15.5.26",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "jpeg-js": "^0.4.4",
+    "typescript": "^5.9.3"
   }
 }

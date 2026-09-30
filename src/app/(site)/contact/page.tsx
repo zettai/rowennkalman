@@ -5,7 +5,7 @@ import { ContactForm } from "@/components/site/ContactForm";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { site } = await getSiteContent();
-  return { title: site.nav.contact };
+  return { title: site.nav.contact, alternates: { canonical: "/contact" } };
 }
 
 export default async function ContactPage() {

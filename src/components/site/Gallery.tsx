@@ -49,7 +49,7 @@ export function Gallery({ items }: { items: Item[] }) {
 
   return (
     <>
-      <ul className="gallery">
+      <ul className="gallery" data-testid="artworks">
         {items.map((a, i) => (
           <li key={a.id}>
             <button type="button" className="gallery-thumb" onClick={(e) => open(i, e.currentTarget)}>
@@ -62,7 +62,11 @@ export function Gallery({ items }: { items: Item[] }) {
             </button>
             {(a.title || details(a)) && (
               <div className="gallery-caption">
-                {a.title && <p className="artwork-title">{a.title}</p>}
+                {a.title && (
+                  <p className="artwork-title" data-testid="artwork-title">
+                    {a.title}
+                  </p>
+                )}
                 {details(a) && <p className="artwork-details">{details(a)}</p>}
               </div>
             )}

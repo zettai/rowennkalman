@@ -1,0 +1,43 @@
+import { ContentSchema, IMAGE_KEY_PATTERN, type Content } from "@/lib/content/schema";
+import seedJson from "@content/seed.json";
+import { ConflictError, StoreError } from "./types";
+
+export function parseContent(raw: unknown, where: string): Content {
+  const result = ContentSchema.safeParse(raw);
+  if (!result.success) {
+    throw new StoreError(`Invalid content ${where}: ${result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")}`);
+  }
+  return result.data;
+}
+
+export function seedContent(): Content {
+  return parseContent(structuredClone(seedJson), "in content/seed.json");
+}
+
+export function assertImageKey(key: string): void {
+  if (!IMAGE_KEY_PATTERN.test(key)) throw new StoreError(`Refusing unexpected image key: ${JSON.stringify(key)}`);
+}
+
+/** A fresh updatedAt that is strictly later than the previous one (tokens must change on every write). */
+export function nextUpdatedAt(previous: string, now: () => number = Date.now): string {
+  const prev = Date.parse(previous);
+  const t = Math.max(now(), Number.isFinite(prev) ? prev + 1 : 0);
+  return new Date(t).toISOString();
+}
+
+/** The shared optimistic-concurrency step: validate, compare tokens, stamp. */
+export function prepareWrite(current: Content, next: Content, expectedUpdatedAt: string, now?: () => number): Content {
+  if (current.updatedAt !== expectedUpdatedAt) throw new ConflictError(current.updatedAt);
+  const validated = parseContent(next, "to save");
+  return { ...validated, updatedAt: nextUpdatedAt(current.updatedAt, now) };
+}
+
+/** Serialises async work within one process (read-compare-write must not interleave). */
+export function createMutex() {
+  let tail: Promise<unknown> = Promise.resolve();
+  return function run<T>(fn: () => Promise<T>): Promise<T> {
+    const result = tail.then(fn, fn);
+    tail = result.catch(() => undefined);
+    return result;
+  };
+}

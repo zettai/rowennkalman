@@ -1,0 +1,122 @@
+{
+  "version": 1,
+  "updatedAt": "2026-01-01T00:00:00.000Z",
+  "site": {
+    "name": "Artist Name",
+    "metaTitle": "Artist Name | Paintings of the Pacific Northwest",
+    "metaDescription": "Placeholder description: paintings of wetlands, forests and the animals that live there.",
+    "nav": {
+      "home": "Home",
+      "about": "About",
+      "portfolio": "Portfolio",
+      "research": "Research",
+      "contact": "Contact"
+    },
+    "footer": {
+      "followLabel": "Follow the studio",
+      "followUrl": "https://example.com/"
+    }
+  },
+  "home": {
+    "heroTitle": "Placeholder hero title",
+    "heroSubtitle": "Placeholder subtitle: a line about painting the places and creatures of the Pacific Northwest.",
+    "heroImage": {
+      "key": "art/seed-hero.jpg",
+      "width": 720,
+      "height": 405,
+      "alt": "Placeholder: layered green hills under a pale sky"
+    },
+    "featured": [
+      "7b1e3c1a-2f4d-4a5b-9c6d-0e1f2a3b4c5d",
+      "8c2f4d2b-3a5e-4b6c-8d7e-1f2a3b4c5d6e"
+    ],
+    "portfolioLinkLabel": "See all paintings"
+  },
+  "about": {
+    "title": "About",
+    "body": "Placeholder paragraph one. A few sentences about the artist, the studio and the landscapes that shape the work.\n\nPlaceholder paragraph two. A few sentences about ecology, fieldwork and why painting matters for it.",
+    "images": [
+      {
+        "key": "art/seed-about.jpg",
+        "width": 400,
+        "height": 500,
+        "alt": "Placeholder: warm brown ridges at dusk"
+      }
+    ]
+  },
+  "portfolio": {
+    "title": "Portfolio",
+    "intro": "Placeholder introduction to the paintings.",
+    "artworks": [
+      {
+        "id": "7b1e3c1a-2f4d-4a5b-9c6d-0e1f2a3b4c5d",
+        "image": {
+          "key": "art/seed-art-1.jpg",
+          "width": 400,
+          "height": 500,
+          "alt": "Placeholder: misty green ridgelines"
+        },
+        "title": "Placeholder Artwork One",
+        "medium": "Acrylic on panel",
+        "size": "12 x 16 in",
+        "year": "2025",
+        "description": "Placeholder description for the first artwork."
+      },
+      {
+        "id": "8c2f4d2b-3a5e-4b6c-8d7e-1f2a3b4c5d6e",
+        "image": {
+          "key": "art/seed-art-2.jpg",
+          "width": 520,
+          "height": 390,
+          "alt": "Placeholder: peach sky over mauve hills"
+        },
+        "title": "Placeholder Artwork Two",
+        "medium": "Oil on canvas",
+        "size": "18 x 24 in",
+        "year": "2024",
+        "description": ""
+      },
+      {
+        "id": "9d3a5e3c-4b6f-4c7d-9e8f-2a3b4c5d6e7f",
+        "image": {
+          "key": "art/seed-art-3.jpg",
+          "width": 440,
+          "height": 440,
+          "alt": "Placeholder: blue mountains in rain"
+        },
+        "title": "Placeholder Artwork Three",
+        "medium": "Watercolour on paper",
+        "size": "10 x 10 in",
+        "year": "",
+        "description": "Placeholder description for the third artwork."
+      }
+    ]
+  },
+  "research": {
+    "title": "Research",
+    "introEn": "Placeholder English introduction to the thesis research.",
+    "introEs": "Introducción de ejemplo a la investigación de la tesis.",
+    "image": null,
+    "documents": [
+      {
+        "id": "doc-1",
+        "labelEn": "Placeholder thesis summary (PDF)",
+        "labelEs": "Resumen de ejemplo de la tesis (PDF)",
+        "href": "https://example.com/thesis-summary.pdf"
+      }
+    ]
+  },
+  "contact": {
+    "title": "Contact",
+    "intro": "Placeholder invitation to get in touch about commissions or research.",
+    "image": null,
+    "form": {
+      "nameLabel": "Your name",
+      "emailLabel": "Your email",
+      "messageLabel": "Message",
+      "submitLabel": "Send message",
+      "successMessage": "Thank you. Your message was sent.",
+      "errorMessage": "Sorry, the message could not be sent. Please try again later."
+    }
+  }
+}

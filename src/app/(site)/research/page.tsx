@@ -4,7 +4,7 @@ import { getSiteContent, imageUrl, paragraphs, type Content } from "@/components
 
 export async function generateMetadata(): Promise<Metadata> {
   const { site } = await getSiteContent();
-  return { title: site.nav.research };
+  return { title: site.nav.research, alternates: { canonical: "/research" } };
 }
 
 function Intro({ research, lang }: { research: Content["research"]; lang: "en" | "es" }) {

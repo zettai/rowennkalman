@@ -597,3 +597,18 @@ main:has(.portfolio) + .site-footer {
 .site-footer a {
   text-underline-offset: 5px;
 }
+
+/* 404 */
+
+.not-found {
+  min-height: 50vh;
+}
+
+.not-found p {
+  margin-top: 1.5rem;
+  max-width: 40rem;
+}
+
+.not-found a {
+  text-underline-offset: 5px;
+}
