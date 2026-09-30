@@ -16,7 +16,9 @@
     "hash-password": "node scripts/hash-password.mjs",
     "placeholders": "node scripts/make-placeholders.mjs",
     "test:coverage": "jest --coverage --coverageReporters=lcov --coverageReporters=text-summary",
-    "sonar": "scripts/sonar.sh"
+    "sonar": "scripts/sonar.sh",
+    "image-sizes": "tsx --env-file=.env.local scripts/image-sizes.mts",
+    "upload-failures": "tsx --env-file=.env.local scripts/upload-failures.mts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1143.0",
@@ -43,6 +45,7 @@
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "jpeg-js": "^0.4.4",
+    "tsx": "^4.23.15",
     "typescript": "^5.9.3"
   }
 }

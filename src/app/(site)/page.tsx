@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getSiteContent, imageUrl } from "@/components/site/content";
+import { getSiteContent, pictureSrc } from "@/components/site/content";
 import { Painting } from "@/components/site/Painting";
 
 export const dynamic = "force-dynamic";
@@ -26,7 +26,7 @@ export default async function HomePage() {
           <div className="feature-image">
             <Painting
               image={home.heroImage}
-              src={imageUrl(home.heroImage.key)}
+              {...pictureSrc(home.heroImage)}
               sizes="(max-width: 767px) 100vw, 34vw"
               layout="fill"
               priority
@@ -41,7 +41,7 @@ export default async function HomePage() {
             {featured.map((a) => (
               <li key={a.id}>
                 <Link href="/portfolio">
-                  <Painting image={a.image} src={imageUrl(a.image.key)} sizes="(max-width: 767px) 100vw, 30vw" eager />
+                  <Painting image={a.image} {...pictureSrc(a.image)} sizes="(max-width: 767px) 100vw, 30vw" eager />
                 </Link>
                 {a.title && <p className="artwork-title">{a.title}</p>}
               </li>

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getSiteContent, imageUrl, paragraphs, siteUrl } from "@/components/site/content";
+import { getSiteContent, imageUrl, pictureSrc, paragraphs, siteUrl } from "@/components/site/content";
 import { Gallery } from "@/components/site/Gallery";
 import { artworksJsonLd, jsonLdGraph, openGraphFor, pageDescription, portfolioSummary } from "@/components/site/seo";
 
@@ -19,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function PortfolioPage() {
   const content = await getSiteContent();
   const { portfolio } = content;
-  const items = portfolio.artworks.map((a) => ({ ...a, src: imageUrl(a.image.key) }));
+  const items = portfolio.artworks.map((a) => ({ ...a, ...pictureSrc(a.image) }));
   return (
     <section className="page portfolio">
       <script

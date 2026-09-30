@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getSiteContent, imageUrl, paragraphs } from "@/components/site/content";
+import { getSiteContent, imageUrl, pictureSrc, paragraphs } from "@/components/site/content";
 import { ContactForm } from "@/components/site/ContactForm";
 import { Painting } from "@/components/site/Painting";
 import { openGraphFor, pageDescription } from "@/components/site/seo";
@@ -34,7 +34,7 @@ export default async function ContactPage() {
         <div className="feature-image">
           <Painting
             image={contact.image}
-            src={imageUrl(contact.image.key)}
+            {...pictureSrc(contact.image)}
             sizes="(max-width: 767px) 100vw, 34vw"
             layout="fill"
             priority

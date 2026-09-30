@@ -12,7 +12,18 @@ export interface ContentStore {
    * that were never saved into content can be swept (see sweepOrphanImages).
    */
   listImages(): Promise<StoredImage[]>;
+  /**
+   * Stores a pre-made WebP size of a picture (key from sizeKey() in src/lib/images/sizes.ts).
+   * Sizes are not listed by listImages, and deleteImage(original) deletes them too.
+   */
+  putImageSize(key: string, bytes: Uint8Array): Promise<void>;
+  /** Keeps a record of a failed upload, privately (never under art/). See docs/IMAGES.md. */
+  putUploadFailure(record: UploadFailure): Promise<void>;
+  listUploadFailures(): Promise<UploadFailure[]>;
 }
+
+/** One failed upload: where it failed and enough context to fix it. Never the picture itself. */
+export type UploadFailure = { at: string; id: string; step: string; message: string } & Record<string, unknown>;
 
 export type StoredImage = { key: string; lastModified: number };
 

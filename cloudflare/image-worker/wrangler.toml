@@ -1,0 +1,10 @@
+# Deploy with scripts/cloudflare.sh deploy (token from the macOS Keychain). See docs/IMAGES.md.
+name = "rowennkalman-images"
+main = "worker.js"
+compatibility_date = "2026-09-30"
+account_id = "a0b1369083ee4c1b4afb75bafb927643"
+workers_dev = false
+routes = [{ pattern = "img.tomas-tello.stream", custom_domain = true }]
+
+[vars]
+ORIGIN = "https://rowennkalman.s3.fr-par.scw.cloud"

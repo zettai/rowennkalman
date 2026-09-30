@@ -3,8 +3,8 @@ import { randomUUID } from "node:crypto";
 import path from "node:path";
 import type { Content } from "@/lib/content/schema";
 import { collectImageKeys } from "@/lib/content/schema";
-import type { ContentStore, StoredImage } from "./types";
-import { assertImageKey, createMutex, parseContent, prepareWrite, seedContent } from "./common";
+import type { ContentStore, StoredImage, UploadFailure } from "./types";
+import { allSizeKeys, assertImageKey, assertSizeKey, createMutex, parseContent, prepareWrite, seedContent, uploadFailureKey } from "./common";
 
 /** Where FileStore serves images from (see src/app/api/dev-images). */
 export const DEV_IMAGE_ROUTE = "/api/dev-images";
@@ -82,6 +82,26 @@ export class FileStore implements ContentStore {
 
   async deleteImage(key: string): Promise<void> {
     await rm(this.imagePath(key), { force: true });
+    for (const k of allSizeKeys(key)) await rm(path.join(this.dir, k), { force: true });
+  }
+
+  async putImageSize(key: string, bytes: Uint8Array): Promise<void> {
+    assertSizeKey(key);
+    await this.atomicWrite(path.join(this.dir, key), bytes);
+  }
+
+  async putUploadFailure(record: UploadFailure): Promise<void> {
+    await this.atomicWrite(path.join(this.dir, uploadFailureKey(record)), JSON.stringify(record, null, 2));
+  }
+
+  async listUploadFailures(): Promise<UploadFailure[]> {
+    const dir = path.join(this.dir, "logs", "upload-failures");
+    const names = await readdir(dir).catch(() => [] as string[]);
+    const out: UploadFailure[] = [];
+    for (const name of names.filter((n) => n.endsWith(".json")).sort().reverse()) {
+      out.push(JSON.parse(await readFile(path.join(dir, name), "utf8")) as UploadFailure);
+    }
+    return out;
   }
 
   /** Reads image bytes (for the dev image route). Returns null if missing. */

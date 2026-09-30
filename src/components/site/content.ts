@@ -3,7 +3,8 @@
 import { cache } from "react";
 import { getStore } from "@/lib/store";
 import { logEvent } from "@/lib/log";
-import type { Content } from "@/lib/content/schema";
+import type { Content, ImageRef } from "@/lib/content/schema";
+import { sizeKey, srcSetFor } from "@/lib/images/sizes";
 
 export type { Artwork, Content, ImageRef } from "@/lib/content/schema";
 export { paragraphs } from "@/lib/content/schema";
@@ -26,6 +27,22 @@ export const getSiteContent = cache(async (): Promise<Content> => {
 
 export function imageUrl(key: string): string {
   return getStore().imageUrl(key);
+}
+
+/** Where pictures with pre-made sizes are served from (the Cloudflare Worker). Unset: the old way. */
+export function imageCdnUrl(): string | undefined {
+  return process.env.ROWENNKALMAN_IMAGE_CDN_URL?.trim().replace(/\/$/, "") || undefined;
+}
+
+/**
+ * src (+ srcSet) for a picture: its pre-made sizes through the Worker when it has them and the
+ * switch is on, otherwise the original, which the page resizes through Netlify. See docs/IMAGES.md.
+ */
+export function pictureSrc(image: ImageRef): { src: string; srcSet?: string } {
+  const cdn = imageCdnUrl();
+  const srcSet = cdn ? srcSetFor(cdn, image) : undefined;
+  if (!cdn || !srcSet || !image.sizes?.length) return { src: imageUrl(image.key) };
+  return { src: `${cdn}/${sizeKey(image.key, image.sizes[0]!)}`, srcSet };
 }
 
 // One list for the header and the footer, so the two never drift apart.

@@ -17,7 +17,26 @@ const ACCEPTED_EXT = /\.(jpe?g|png|webp)$/i;
 /** For <input accept>. */
 export const ACCEPT_ATTR = "image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp";
 
-export class UploadError extends Error {}
+export type UploadStep = "prepare" | "send" | "sizes" | "done";
+
+export class UploadError extends Error {
+  constructor(
+    message: string,
+    /** Where it failed, for the progress panel and the failure log. */
+    readonly step: UploadStep = "prepare",
+    /** The upload's reference, shown to the editor so a failure can be looked up. */
+    readonly id?: string,
+  ) {
+    super(message);
+    this.name = "UploadError";
+  }
+}
+
+/** A short reference for one upload attempt, e.g. "u-7f3k2x9q". */
+export function newUploadId(): string {
+  const rnd = crypto.getRandomValues(new Uint8Array(6));
+  return `u-${[...rnd].map((b) => (b % 36).toString(36)).join("")}`;
+}
 
 /** Returns a friendly message if the file type is not usable, otherwise null. */
 export function fileTypeProblem(file: { name: string; type: string }): string | null {
@@ -122,24 +141,100 @@ export async function prepareImage(file: File): Promise<{ blob: Blob; width: num
   }
 }
 
-export type UploadResult = { image: ImageRef; url: string };
+export type UploadResult = { image: ImageRef; url: string; id: string };
+export type UploadProgress = { step: UploadStep; percent?: number };
 
-/** Prepares the file in the browser and uploads it. Throws UploadError with a friendly message. */
-export async function uploadImage(file: File, alt = ""): Promise<UploadResult> {
-  const { blob, blur } = await prepareImage(file);
-  const form = new FormData();
-  form.set("file", blob, "image.jpg");
-  form.set("alt", alt);
-  let res: Response;
+type SendResult = { status: number; body: Partial<UploadResult> & { message?: string } };
+
+/** POST with upload progress: fetch cannot report it, XMLHttpRequest can. */
+function send(form: FormData, onSent: (percent: number) => void): Promise<SendResult> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/admin/upload");
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) onSent(Math.min(100, Math.round((e.loaded / e.total) * 100)));
+    };
+    xhr.onload = () => {
+      let body: SendResult["body"] = {};
+      try {
+        body = JSON.parse(xhr.responseText) as SendResult["body"];
+      } catch {
+        // not JSON (e.g. a gateway error page)
+      }
+      resolve({ status: xhr.status, body });
+    };
+    xhr.onerror = () => reject(new Error("network error"));
+    xhr.ontimeout = () => reject(new Error("timed out"));
+    xhr.timeout = 120_000;
+    xhr.send(form);
+  });
+}
+
+/** Best effort: tells the server about a failure it could not see itself (docs/IMAGES.md). */
+export function reportUploadFailure(report: {
+  id: string;
+  step: "prepare" | "send";
+  message: string;
+  error?: string;
+  status?: number;
+  fileType?: string;
+  fileBytes?: number;
+  ms?: number;
+}): void {
+  void fetch("/api/admin/client-log", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(report),
+    keepalive: true,
+  }).catch(() => undefined);
+}
+
+/**
+ * Prepares the file in the browser and uploads it, reporting each step. Throws UploadError
+ * (with the step and the upload's reference) with a friendly message.
+ */
+export async function uploadImage(
+  file: File,
+  alt = "",
+  options: { onProgress?: (p: UploadProgress) => void; id?: string } = {},
+): Promise<UploadResult> {
+  const id = options.id ?? newUploadId();
+  const progress = options.onProgress ?? (() => undefined);
+  const t0 = performance.now();
+  const context = { id, fileType: file.type.slice(0, 100), fileBytes: file.size };
+
+  progress({ step: "prepare" });
+  let prepared: Awaited<ReturnType<typeof prepareImage>>;
   try {
-    res = await fetch("/api/admin/upload", { method: "POST", body: form });
-  } catch {
-    throw new UploadError("The picture could not be sent. Check your internet connection and try again.");
+    prepared = await prepareImage(file);
+  } catch (err) {
+    const message = err instanceof UploadError ? err.message : "Your device could not prepare the picture.";
+    reportUploadFailure({ ...context, step: "prepare", message, error: err instanceof Error ? `${err.name}: ${err.message}`.slice(0, 200) : undefined, ms: Math.round(performance.now() - t0) });
+    throw new UploadError(message, "prepare", id);
   }
-  if (res.status === 401) throw new UploadError("You have been signed out. Sign in again in a new tab, then try again.");
-  const body = (await res.json().catch(() => ({}))) as Partial<UploadResult> & { message?: string };
-  if (!res.ok || !body.image || !body.url) throw new UploadError(body.message ?? "The picture could not be uploaded. Please try again.");
-  return { image: blur ? { ...body.image, blur } : body.image, url: body.url };
+
+  const form = new FormData();
+  form.set("file", prepared.blob, "image.jpg");
+  form.set("alt", alt);
+  form.set("uploadId", id);
+  progress({ step: "send", percent: 0 });
+  let res: SendResult;
+  try {
+    res = await send(form, (percent) => progress(percent < 100 ? { step: "send", percent } : { step: "sizes" }));
+  } catch (err) {
+    const message = "The picture could not be sent. Check your internet connection and try again.";
+    reportUploadFailure({ ...context, step: "send", message, error: err instanceof Error ? err.message : undefined, ms: Math.round(performance.now() - t0) });
+    throw new UploadError(message, "send", id);
+  }
+  if (res.status === 401) throw new UploadError("You have been signed out. Sign in again in a new tab, then try again.", "send", id);
+  // The server logged and kept its own failures; only unreadable answers need reporting.
+  if (res.status < 200 || res.status >= 300 || !res.body.image || !res.body.url) {
+    if (!res.body.message) reportUploadFailure({ ...context, step: "send", message: "Unexpected answer from the server", status: res.status, ms: Math.round(performance.now() - t0) });
+    throw new UploadError(res.body.message ?? "The picture could not be uploaded. Please try again.", "sizes", id);
+  }
+  progress({ step: "done" });
+  const image = prepared.blur ? { ...res.body.image, blur: prepared.blur } : res.body.image;
+  return { image, url: res.body.url, id };
 }
 
 /** Best effort: removes an upload that will not be saved. */

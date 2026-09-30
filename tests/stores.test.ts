@@ -249,3 +249,51 @@ describe("getStore", () => {
     setStoreForTests(undefined);
   });
 });
+
+describe.each(Object.keys(harnesses))("%s: picture sizes and upload failures", (name) => {
+  let h: Harness;
+  beforeEach(() => {
+    h = harnesses[name]!();
+  });
+  afterEach(() => h.cleanup());
+
+  it("keeps sizes next to the original, hides them from listImages, and deletes them with it", async () => {
+    await h.store.putImage("art/new.jpg", JPEG, "image/jpeg");
+    await h.store.putImageSize("art/new-640.webp", new Uint8Array([1, 2]));
+    await h.store.putImageSize("art/new-960.webp", new Uint8Array([3]));
+    expect(await h.hasImage("art/new-640.webp")).toBe(true);
+    expect((await h.store.listImages()).map((i) => i.key)).toContain("art/new.jpg");
+    expect((await h.store.listImages()).map((i) => i.key).filter((k) => k.endsWith(".webp"))).toEqual([]);
+    await h.store.deleteImage("art/new.jpg");
+    expect(await h.hasImage("art/new.jpg")).toBe(false);
+    expect(await h.hasImage("art/new-640.webp")).toBe(false);
+    expect(await h.hasImage("art/new-960.webp")).toBe(false);
+  });
+
+  it("refuses size keys that are not art/<name>-<width>.webp", async () => {
+    await expect(h.store.putImageSize("content.json", new Uint8Array([1]))).rejects.toThrow(/size key/);
+    await expect(h.store.putImageSize("art/x.jpg", new Uint8Array([1]))).rejects.toThrow(/size key/);
+  });
+
+  it("keeps upload failures outside art/ and lists them newest first", async () => {
+    await h.store.putUploadFailure({ at: "2026-09-30T10:00:00.000Z", id: "u-aaaa", step: "send", message: "first" });
+    await h.store.putUploadFailure({ at: "2026-09-30T11:00:00.000Z", id: "u-bbbb", step: "sizes", message: "second" });
+    expect((await h.store.listUploadFailures()).map((f) => f.id)).toEqual(["u-bbbb", "u-aaaa"]);
+    if (h.fake) {
+      const keys = [...h.fake.objects.keys()].filter((k) => k.startsWith("logs/"));
+      expect(keys).toEqual(["logs/upload-failures/2026-09-30T10-00-00-000Z-u-aaaa.json", "logs/upload-failures/2026-09-30T11-00-00-000Z-u-bbbb.json"]);
+    }
+  });
+});
+
+it("the orphan sweep never touches sizes on their own, and sweeps them with an orphan original", async () => {
+  const store = new MemoryStore(undefined, { now: () => 10 * 24 * 3600 * 1000 });
+  store.images.set("art/orphan.jpg", { bytes: JPEG, lastModified: 0 });
+  store.images.set("art/orphan-640.webp", { bytes: JPEG, lastModified: 0 });
+  const used = [...collectImageKeys(await store.getContent())][0]!;
+  const usedSize = used.replace(/\.jpg$/, "-640.webp");
+  store.images.set(usedSize, { bytes: JPEG, lastModified: 0 });
+  expect(await sweepOrphanImages(store)).toEqual(["art/orphan.jpg"]);
+  expect(store.images.has("art/orphan-640.webp")).toBe(false);
+  expect(store.images.has(usedSize)).toBe(true);
+});

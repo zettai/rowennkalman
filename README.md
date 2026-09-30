@@ -12,6 +12,9 @@ content and photos in a Scaleway bucket; Rowenn edits everything at `/admin` (em
 | Browser tests | `npx playwright test e2e/admin.spec.ts` (runs on a scratch store, never the bucket) |
 | Code quality | `npm run sonar` (SonarQube on sona-z; commit first) |
 | Netlify from the terminal | `scripts/netlify.sh <netlify-cli args>` (deploys, function logs) |
+| Picture sizes (backfill/repair) | `npm run image-sizes` (dry run) / `-- --apply`: see `docs/IMAGES.md` |
+| Failed uploads | `npm run upload-failures [-- --since 7d \| --id u-…]` |
+| Image Worker (Cloudflare) | `scripts/cloudflare.sh deploy \| tail \| purge <url>` |
 
 ## Careful
 
@@ -19,12 +22,15 @@ content and photos in a Scaleway bucket; Rowenn edits everything at `/admin` (em
   there read and write the live content. For local work, blank the `ROWENNKALMAN_S3_*` variables
   (the local store in `.data/` is then used). Names of all settings: `.env.example`.
 - Secrets live in Netlify (production) and the macOS Keychain (`rowennkalman-netlify-token`,
-  `rowennkalman-sonar-token`), never in the repo.
+  `rowennkalman-sonar-token`, `rowennkalman-cloudflare-token`), never in the repo.
+- Pictures are served in pre-made sizes through a Cloudflare Worker (`img.tomas-tello.stream`);
+  `ROWENNKALMAN_IMAGE_CDN_URL` is the off switch. Everything about it: `docs/IMAGES.md`.
 - Public pages are cached by Netlify for an hour and purged on every admin save; each page's
   `<meta name="content-version">` shows which save it is showing.
 
 ## Docs
 
 - `docs/PLAN.md`: current status, decisions, caching, SEO, debugging, what's deferred.
+- `docs/IMAGES.md`: the picture pipeline (upload, sizes, Worker), switches, secrets, runbooks.
 - `docs/AUDIT.md`: audits, incidents and how each was resolved.
 - `docs/admin-REPORT.md`: the original admin/backend report (historical).

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Fragment } from "react";
-import { getSiteContent, imageUrl, paragraphs } from "@/components/site/content";
+import { getSiteContent, imageUrl, pictureSrc, paragraphs } from "@/components/site/content";
 import { Painting } from "@/components/site/Painting";
 import { openGraphFor, pageDescription } from "@/components/site/seo";
 
@@ -28,7 +28,7 @@ export default async function AboutPage() {
 
   const picture = (img: (typeof about.images)[number]) => (
     <figure className="about-figure" key={img.key}>
-      <Painting image={img} src={imageUrl(img.key)} sizes="(max-width: 767px) 100vw, 56rem" />
+      <Painting image={img} {...pictureSrc(img)} sizes="(max-width: 767px) 100vw, 56rem" />
     </figure>
   );
 

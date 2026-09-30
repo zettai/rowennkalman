@@ -1,6 +1,7 @@
 import { ContentSchema, IMAGE_KEY_PATTERN, type Content } from "@/lib/content/schema";
 import seedJson from "@content/seed.json";
 import { ConflictError, StoreError } from "./types";
+import { SIZE_KEY_PATTERN, SIZE_WIDTHS, sizeKey } from "@/lib/images/sizes";
 
 export function parseContent(raw: unknown, where: string): Content {
   const result = ContentSchema.safeParse(raw);
@@ -17,6 +18,21 @@ export function seedContent(): Content {
 
 export function assertImageKey(key: string): void {
   if (!IMAGE_KEY_PATTERN.test(key)) throw new StoreError(`Refusing unexpected image key: ${JSON.stringify(key)}`);
+}
+
+export function assertSizeKey(key: string): void {
+  if (!SIZE_KEY_PATTERN.test(key)) throw new StoreError(`Refusing unexpected image size key: ${JSON.stringify(key)}`);
+}
+
+/** Every size key a picture could have, for deleting them with it. */
+export function allSizeKeys(originalKey: string): string[] {
+  return SIZE_WIDTHS.map((w) => sizeKey(originalKey, w));
+}
+
+/** logs/upload-failures/<time>-<id>.json, sortable by time. */
+export function uploadFailureKey(record: { at: string; id: string }): string {
+  const safeId = record.id.replace(/[^A-Za-z0-9-]/g, "").slice(0, 32) || "unknown";
+  return `logs/upload-failures/${record.at.replace(/[:.]/g, "-")}-${safeId}.json`;
 }
 
 /** A fresh updatedAt that is strictly later than the previous one (tokens must change on every write). */

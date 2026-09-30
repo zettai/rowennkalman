@@ -1,11 +1,14 @@
 import { getStore } from "@/lib/store";
 import { unauthorized } from "@/lib/auth/server";
-import { handleDiscardUpload, handleUpload } from "@/lib/admin/handlers";
+import { handleDiscardUpload, handleUpload, uploadIdFrom } from "@/lib/admin/handlers";
 import { MAX_UPLOAD_BYTES } from "@/lib/upload/verify";
 
 export const dynamic = "force-dynamic";
 
-/** multipart/form-data: file (image/jpeg, already processed in the browser), alt. Returns { image, url }. */
+/**
+ * multipart/form-data: file (image/jpeg, already processed in the browser), alt, uploadId.
+ * Returns { image, url, id }; the server also makes the picture's WebP sizes (docs/IMAGES.md).
+ */
 export async function POST(req: Request) {
   const denied = await unauthorized();
   if (denied) return denied;
@@ -20,7 +23,9 @@ export async function POST(req: Request) {
     return Response.json({ error: "invalid", message: "The upload was not understood." }, { status: 400 });
   }
   const file = form.get("file");
-  const result = await handleUpload(getStore(), file instanceof Blob ? file : null, form.get("alt"));
+  const result = await handleUpload(getStore(), file instanceof Blob ? file : null, form.get("alt"), {
+    id: uploadIdFrom(form.get("uploadId")),
+  });
   return Response.json(result.body, { status: result.status });
 }
 

@@ -19,6 +19,8 @@ export const ImageRefSchema = z.object({
     .max(2000)
     .regex(/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/, "Blur preview must be a small JPEG data URL")
     .optional(),
+  /** Widths of the WebP copies stored next to the picture (src/lib/images/sizes.ts). None: served the old way. */
+  sizes: z.array(z.number().int().min(16).max(4096)).max(8).optional(),
 });
 
 export const ArtworkSchema = z.object({

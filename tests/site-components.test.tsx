@@ -157,3 +157,15 @@ describe("mobile menu", () => {
     expect(details).not.toHaveAttribute("open");
   });
 });
+
+describe("Painting with pre-made sizes", () => {
+  it("renders a plain img with the srcset (no Netlify resizing), keeping the preview and fade", () => {
+    const srcSet = "https://img.test/art/5-640.webp 640w, https://img.test/art/5.jpg 2000w";
+    render(<Painting image={image(5)} src="https://img.test/art/5-640.webp" srcSet={srcSet} sizes="50vw" layout="fill" />);
+    const img = screen.getByAltText("Painting 5 alt");
+    expect(img).toHaveAttribute("srcset", srcSet);
+    expect(img).toHaveAttribute("sizes", "50vw");
+    expect(img.getAttribute("src")).toBe("https://img.test/art/5-640.webp");
+    expect(img).toHaveAttribute("data-loaded", "false");
+  });
+});

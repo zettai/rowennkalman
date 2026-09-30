@@ -8,7 +8,7 @@ import { Painting } from "./Painting";
 // The first rows are on screen at once: load them right away, the rest as they scroll near.
 const EAGER_THUMBS = 6;
 
-type Item = Artwork & { src: string };
+type Item = Artwork & { src: string; srcSet?: string };
 
 function details(a: Artwork): string {
   return [a.medium, a.size, a.year].filter(Boolean).join(", ");
@@ -72,6 +72,7 @@ export function Gallery({ items }: Readonly<{ items: Item[] }>) {
               <Painting
                 image={a.image}
                 src={a.src}
+                srcSet={a.srcSet}
                 sizes="(max-width: 767px) 50vw, 22vw"
                 layout="fill"
                 eager={i < EAGER_THUMBS}
@@ -103,6 +104,7 @@ export function Gallery({ items }: Readonly<{ items: Item[] }>) {
                 key={current.id}
                 image={current.image}
                 src={current.src}
+                srcSet={current.srcSet}
                 sizes="90vw"
                 layout="fill"
                 fit="contain"
@@ -117,9 +119,14 @@ export function Gallery({ items }: Readonly<{ items: Item[] }>) {
               </div>
             )}
             <div hidden aria-hidden="true">
-              {neighbours.map((n) => (
-                <Image key={n.id} src={n.src} alt="" fill loading="eager" sizes="90vw" />
-              ))}
+              {neighbours.map((n) =>
+                n.srcSet ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- warms the cache for the next arrow press
+                  <img key={n.id} src={n.src} srcSet={n.srcSet} sizes="90vw" alt="" loading="eager" />
+                ) : (
+                  <Image key={n.id} src={n.src} alt="" fill loading="eager" sizes="90vw" />
+                ),
+              )}
             </div>
             <div className="lightbox-controls">
               <button type="button" onClick={() => step(-1)} aria-label="Previous artwork">

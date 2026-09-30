@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getSiteContent, imageUrl, paragraphs, siteUrl, type Content } from "@/components/site/content";
+import { getSiteContent, imageUrl, pictureSrc, paragraphs, siteUrl, type Content } from "@/components/site/content";
 import { Painting } from "@/components/site/Painting";
 import { jsonLdGraph, openGraphFor, pageDescription, researchJsonLd } from "@/components/site/seo";
 
@@ -47,7 +47,7 @@ export default async function ResearchPage() {
           <div className="research-image">
             <Painting
               image={research.image}
-              src={imageUrl(research.image.key)}
+              {...pictureSrc(research.image)}
               sizes="(max-width: 767px) 100vw, 30vw"
               eager
             />

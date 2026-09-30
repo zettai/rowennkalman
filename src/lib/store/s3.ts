@@ -7,8 +7,8 @@ import {
   type ListObjectsV2CommandOutput,
 } from "@aws-sdk/client-s3";
 import type { Content } from "@/lib/content/schema";
-import { ConflictError, StoreError, type ContentStore, type StoredImage } from "./types";
-import { assertImageKey, createMutex, parseContent, prepareWrite } from "./common";
+import { ConflictError, StoreError, type ContentStore, type StoredImage, type UploadFailure } from "./types";
+import { allSizeKeys, assertImageKey, assertSizeKey, createMutex, parseContent, prepareWrite, uploadFailureKey } from "./common";
 import { trimEndChars } from "@/lib/text";
 
 export type S3Config = {
@@ -128,6 +128,53 @@ export class S3Store implements ContentStore {
   async deleteImage(key: string): Promise<void> {
     assertImageKey(key);
     await this.client.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key }));
+    // Its WebP sizes too (deleting a key that does not exist is not an error in S3).
+    for (const k of allSizeKeys(key)) await this.client.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: k }));
+  }
+
+  async putImageSize(key: string, bytes: Uint8Array): Promise<void> {
+    assertSizeKey(key);
+    await this.client.send(
+      new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        Body: bytes,
+        ContentType: "image/webp",
+        CacheControl: "public, max-age=31536000, immutable",
+      }),
+    );
+  }
+
+  /** Private: the bucket policy only makes art/* public. */
+  async putUploadFailure(record: UploadFailure): Promise<void> {
+    await this.client.send(
+      new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: uploadFailureKey(record),
+        Body: JSON.stringify(record, null, 2),
+        ContentType: "application/json",
+      }),
+    );
+  }
+
+  async listUploadFailures(): Promise<UploadFailure[]> {
+    const keys: string[] = [];
+    let token: string | undefined;
+    do {
+      const page = (await this.client.send(
+        new ListObjectsV2Command({ Bucket: this.bucket, Prefix: "logs/upload-failures/", ContinuationToken: token }),
+      )) as ListObjectsV2CommandOutput;
+      for (const obj of page.Contents ?? []) if (obj.Key) keys.push(obj.Key);
+      token = page.IsTruncated ? page.NextContinuationToken : undefined;
+    } while (token);
+    const out: UploadFailure[] = [];
+    for (const key of keys.sort().reverse()) {
+      const obj = (await this.client.send(new GetObjectCommand({ Bucket: this.bucket, Key: key }))) as {
+        Body?: { transformToString(): Promise<string> };
+      };
+      if (obj.Body) out.push(JSON.parse(await obj.Body.transformToString()) as UploadFailure);
+    }
+    return out;
   }
 
   imageUrl(key: string): string {
@@ -142,7 +189,8 @@ export class S3Store implements ContentStore {
         new ListObjectsV2Command({ Bucket: this.bucket, Prefix: "art/", ContinuationToken: token }),
       )) as ListObjectsV2CommandOutput;
       for (const obj of page.Contents ?? []) {
-        if (obj.Key) out.push({ key: obj.Key, lastModified: obj.LastModified?.getTime() ?? 0 });
+        // Originals only: their WebP sizes are deleted with them, never swept on their own.
+        if (obj.Key?.endsWith(".jpg")) out.push({ key: obj.Key, lastModified: obj.LastModified?.getTime() ?? 0 });
       }
       token = page.IsTruncated ? page.NextContinuationToken : undefined;
     } while (token);

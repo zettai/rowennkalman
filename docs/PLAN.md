@@ -108,7 +108,25 @@ The cloud agent builds the schema from `requests/rowennkalman-admin.md`; local r
 - Cloudflare Turnstile on the contact form, only if spam gets through.
 - Quality gate: CI/CD, probably reusing next-tt's SonarQube setup as a pre-push hook.
 - New page types beyond the fixed five.
-
-## Open facts
-
+- **Investigate why Netlify's Image CDN never serves from cache** (added 2026-09-30). The same
+  `/_next/image?...&w=640` URL fetched 4 times in a row answered `cache-status: "Netlify Edge";
+  fwd=miss` (or `stale`) every time, 1.5-2.0 s each, although the response is
+  `public,max-age=31536000,immutable` and says `stored`. `netlify-vary` includes
+  `header=Netlify-Image-Accept`. Pre-made sizes through Cloudflare now bypass it
+  (`docs/IMAGES.md`); still worth knowing for the fallback path.
+- Purge Cloudflare's cached copies when a picture is deleted (today: manual runbook in
+  `docs/IMAGES.md`, "A deleted picture must not stay reachable"). Needs a purge-only
+  Cloudflare token for `tomas-tello.stream` in Netlify.
+- Faster size-making: `makeSizes` decodes the 2800 px original once per width; on Netlify the
+  sizes step took 3.9 s of a 4.7 s upload (2026-09-30). Decode once and resize from that.
+- **Move rowennkalman.com to Cloudflare, once the site is stable** (decided 2026-09-30: not yet).
+  Two separate steps, the first reversible:
+  1. DNS: point Gandi's nameservers at Cloudflare and copy the zone from Netlify DNS (site:
+     apex, `www`, `tesis` → Netlify, **DNS-only/grey cloud**, apex via CNAME flattening; mail
+     sending: `resend._domainkey` TXT, `send`/`rsend` CNAMEs, `_dmarc` TXT; the Google
+     verification TXT; no MX). Then pictures can move to `img.rowennkalman.com` (only
+     `ROWENNKALMAN_IMAGE_CDN_URL` changes) and Netlify's DNS zone is deleted.
+  2. Optional, weeks later: transfer the registration from Gandi (expires 2027-06-17) to
+     Cloudflare Registrar (~$10-11/year at cost vs ~€20+; requires Cloudflare DNS; 60-day lock).
+  Grill the plan before starting (timing, mail sending during the switch, whether to transfer).
 - Scaleway: new bucket + API key (check whether an existing key can be scoped or a new one is needed).

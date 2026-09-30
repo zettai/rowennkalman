@@ -169,3 +169,40 @@ test("contact API: honeypot pretends success, too-fast is refused, valid is acce
   const ok = await request.post("/api/contact", { data: { ...base, startedAt: Date.now() - 10_000 } });
   expect(await ok.json()).toEqual({ ok: true }); // ConsoleMailer: no key configured
 });
+
+test("uploading a wide picture shows the progress steps and stores its WebP sizes; deleting removes them", async ({ page }) => {
+  const sharp = (await import("sharp")).default;
+  const wide = await sharp({ create: { width: 2400, height: 1600, channels: 3, background: "#5a7" } }).jpeg().toBuffer();
+  await login(page, "/admin/portfolio");
+  const before = await page.getByTestId("artwork-card").count();
+  await page.getByTestId("add-painting-file").setInputFiles({ name: "wide.jpg", mimeType: "image/jpeg", buffer: wide });
+  // The step panel appears while it works, then makes way for the picture.
+  await expect(page.getByTestId("upload-progress")).toBeVisible();
+  await expect(page.getByTestId("upload-progress")).toBeHidden({ timeout: 30_000 });
+  const title = `E2E Wide ${Date.now()}`;
+  await page.locator("#new-art-title").fill(title);
+  await page.getByRole("button", { name: "Add to portfolio" }).click();
+  await expect(page.getByTestId("artwork-card")).toHaveCount(before + 1);
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByTestId("save-status")).toContainText("Saved");
+
+  const saved = (await (await page.request.get("/api/admin/content")).json()) as {
+    content: { portfolio: { artworks: { title: string; image: { key: string; sizes?: number[] } }[] } };
+  };
+  const art = saved.content.portfolio.artworks.find((a) => a.title === title)!;
+  expect(art.image.sizes).toEqual([640, 960, 1280, 1920]);
+  const base = path.join(E2E_DATA_DIR, art.image.key.replace(/\.jpg$/, ""));
+  for (const w of art.image.sizes!) {
+    const meta = await sharp(`${base}-${w}.webp`).metadata();
+    expect(meta).toMatchObject({ format: "webp", width: w });
+  }
+
+  // Deleting the artwork deletes the original and its sizes.
+  const mine = page.getByTestId("artwork-card").filter({ hasText: title });
+  await mine.getByRole("button", { name: "Delete…" }).click();
+  await mine.getByRole("button", { name: "Yes, delete" }).click();
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByTestId("save-status")).toContainText("Saved");
+  await expect.poll(() => existsSync(`${base}-640.webp`)).toBe(false);
+  expect(existsSync(path.join(E2E_DATA_DIR, art.image.key))).toBe(false);
+});

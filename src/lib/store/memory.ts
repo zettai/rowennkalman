@@ -1,11 +1,12 @@
 import type { Content } from "@/lib/content/schema";
-import type { ContentStore, StoredImage } from "./types";
-import { assertImageKey, createMutex, parseContent, prepareWrite, seedContent } from "./common";
+import type { ContentStore, StoredImage, UploadFailure } from "./types";
+import { allSizeKeys, assertImageKey, assertSizeKey, createMutex, parseContent, prepareWrite, seedContent } from "./common";
 
 /** In-memory store for tests. Starts from the seed (without seed image bytes) unless given content. */
 export class MemoryStore implements ContentStore {
   private content: Content;
   readonly images = new Map<string, { bytes: Uint8Array; lastModified: number }>();
+  readonly failures: UploadFailure[] = [];
   private readonly lock = createMutex();
   private readonly now: () => number;
 
@@ -44,6 +45,20 @@ export class MemoryStore implements ContentStore {
   async deleteImage(key: string): Promise<void> {
     assertImageKey(key);
     this.images.delete(key);
+    for (const k of allSizeKeys(key)) this.images.delete(k);
+  }
+
+  async putImageSize(key: string, bytes: Uint8Array): Promise<void> {
+    assertSizeKey(key);
+    this.images.set(key, { bytes: new Uint8Array(bytes), lastModified: this.now() });
+  }
+
+  async putUploadFailure(record: UploadFailure): Promise<void> {
+    this.failures.push(structuredClone(record));
+  }
+
+  async listUploadFailures(): Promise<UploadFailure[]> {
+    return structuredClone(this.failures).reverse();
   }
 
   imageUrl(key: string): string {
@@ -51,6 +66,6 @@ export class MemoryStore implements ContentStore {
   }
 
   async listImages(): Promise<StoredImage[]> {
-    return [...this.images].map(([key, v]) => ({ key, lastModified: v.lastModified }));
+    return [...this.images].filter(([key]) => key.endsWith(".jpg")).map(([key, v]) => ({ key, lastModified: v.lastModified }));
   }
 }
