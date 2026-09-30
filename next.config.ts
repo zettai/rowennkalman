@@ -13,6 +13,11 @@ const PAGE_CDN_SECONDS = 3600;
 const nextConfig: NextConfig = {
   images: { remotePatterns },
   poweredByHeader: false,
+  // Pages render per request, so by default the browser throws a page away as soon as you leave
+  // it and going back waits on the server again (~1 s). Keep visited pages for a few minutes, like
+  // the menu's prefetched ones. After an admin save, an open tab can show the old version for up
+  // to that long; a reload always shows the latest.
+  experimental: { staleTimes: { dynamic: 300 } },
   outputFileTracingRoot: path.resolve("."),
   // FileStore seeds .data/ from these on first read; ship them with the server bundle.
   outputFileTracingIncludes: { "/**": ["./content/**"] },

@@ -37,8 +37,18 @@ describe("Painting", () => {
     const img = screen.getByAltText("Painting 1 alt");
     expect(img).toHaveAttribute("data-loaded", "false");
     expect(img).toHaveAttribute("loading", "lazy");
+    const now = jest.spyOn(performance, "now").mockReturnValue(1e6); // arrives well after mount
     fireEvent.load(img);
     await waitFor(() => expect(img).toHaveAttribute("data-loaded", "true"));
+    now.mockRestore();
+    expect(img).toHaveAttribute("data-instant", "false");
+    expect(frame.style.backgroundImage).toBe(""); // the preview goes once the picture is there
+  });
+  it("shows a picture that arrives at once (browser cache) without the fade", async () => {
+    render(<Painting image={image(4)} src="/img/4.jpg" sizes="100vw" />);
+    const img = screen.getByAltText("Painting 4 alt");
+    fireEvent.load(img);
+    await waitFor(() => expect(img).toHaveAttribute("data-instant", "true"));
   });
   it("loads eagerly when asked, and priority pictures skip the fade", () => {
     render(<Painting image={image(2)} src="/img/2.jpg" sizes="100vw" eager />);

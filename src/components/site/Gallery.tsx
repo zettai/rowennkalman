@@ -99,13 +99,14 @@ export function Gallery({ items }: Readonly<{ items: Item[] }>) {
         {current && (
           <div className="lightbox-inner">
             <div className="lightbox-image">
-              <Image
+              <Painting
                 key={current.id}
+                image={current.image}
                 src={current.src}
-                alt={current.image.alt}
-                fill
-                loading="eager"
                 sizes="90vw"
+                layout="fill"
+                fit="contain"
+                eager
               />
             </div>
             {(current.title || details(current) || current.description) && (
