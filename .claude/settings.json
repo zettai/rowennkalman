@@ -1,0 +1,5 @@
+{
+  "enabledPlugins": {
+    "netlify-skills@claude-plugins-official": true
+  }
+}

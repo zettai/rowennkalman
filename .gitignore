@@ -1,0 +1,12 @@
+node_modules/
+.next/
+.netlify/
+.data/
+.env
+.env.*
+!.env.example
+# original photos go to the bucket, not git
+assets/
+public/_dev-art
+*.tsbuildinfo
+next-env.d.ts
