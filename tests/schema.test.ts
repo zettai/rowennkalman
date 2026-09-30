@@ -17,7 +17,7 @@ function stringLeaves(schema: z.ZodType, prefix = ""): string[] {
   if (schema instanceof z.ZodNullable || schema instanceof z.ZodOptional) {
     return stringLeaves(schema.unwrap() as z.ZodType, prefix);
   }
-  if (schema instanceof z.ZodString) return [prefix];
+  if (schema instanceof z.ZodString || schema instanceof z.ZodStringFormat) return [prefix];
   return [];
 }
 

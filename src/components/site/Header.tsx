@@ -2,7 +2,7 @@ import Link from "next/link";
 import { navItems, type Content } from "./content";
 import { NavLinks } from "./NavLinks";
 
-export function Header({ site }: { site: Content["site"] }) {
+export function Header({ site }: Readonly<{ site: Content["site"] }>) {
   const items = navItems(site);
   return (
     <header className="site-header">

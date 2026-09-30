@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export function NavLinks({ items }: { items: { href: string; label: string }[] }) {
+export function NavLinks({ items }: Readonly<{ items: { href: string; label: string }[] }>) {
   const path = usePathname();
   return (
     <ul>

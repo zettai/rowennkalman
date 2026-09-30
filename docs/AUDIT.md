@@ -120,3 +120,25 @@ Measured, informational (this machine and network): largest paint 0.5–3.7 s de
 Harness bugs found: the text-on-page check matched Next's embedded page data inside `<script>` tags (fixed: it now ignores scripts); the redirect check wanted an absolute URL; the bucket check wanted 403 where 404 is equally private.
 
 Still open, needs a human: real email deliverability (the sign-in link landed in Gmail spam; mark it "not spam", and Rowenn should expect the same); Rowenn reviewing the English Research text and the search description; what small edit was made in the admin before the test incident (not visible in the stored content).
+
+### Production spot check + code quality (2026-09-30, evening)
+
+Read-only on production (no sign-in, no contact message): data, provenance, admin↔public texts,
+40 HTTP/security checks, and a crawl of 5 pages at 1200/390 px (axe, images, lightbox, JS off,
+reduced motion). **0 S1/S2/S3**; the 5 S4 are Rowenn's content (titles, details, descriptions) and
+by-design choices. Function logs for the previous 4 hours: 100 lines, all info, no warnings or
+errors; both saves logged `purge: purged`.
+
+- **Found and fixed: link previews** on About/Portfolio/Research/Contact had lost `og:image`,
+  `og:type` and the site name when those pages got their own descriptions (Next.js replaces a
+  parent's `openGraph` instead of merging). `openGraphFor()` now builds the full block; a
+  mutation-checked unit test covers every page.
+- Harness fixes: Next.js `?_rsc=` prefetch aborts are not failures; a relative redirect Location
+  and a 404 on the bucket listing are both fine.
+
+SonarQube (`npm run sonar`, project `rowennkalman` on sona-z): first scan 1 bug, 2 critical and
+22 major smells, 51 minor, 4 security hotspots, coverage 67.3%. Now **0 bugs, 0 vulnerabilities,
+0 hotspots, 0 smells, gate OK, coverage 71.4%**. The four hotspots were backtracking-prone regexes;
+none was exploitable (input capped or not user-controlled), replaced with linear code anyway
+(`src/lib/text.ts`). One `returnValue` line kept on purpose with `NOSONAR` (browser compatibility).
+"Missing blame information" appears when scanning uncommitted changes; the script now warns.

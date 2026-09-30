@@ -25,7 +25,10 @@ export class FileStore implements ContentStore {
     this.dir = path.resolve(dir);
     this.seedImagesDir = options.seedImagesDir ?? path.join(process.cwd(), "content", "seed-images");
     let lock = locks.get(this.dir);
-    if (!lock) locks.set(this.dir, (lock = createMutex()));
+    if (!lock) {
+      lock = createMutex();
+      locks.set(this.dir, lock);
+    }
     this.lock = lock;
   }
 

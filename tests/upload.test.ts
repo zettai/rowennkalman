@@ -74,3 +74,16 @@ describe("upload handler", () => {
     expect((await handleDiscardUpload(store, "../content.json")).status).toBe(400);
   });
 });
+
+describe("checkJpeg: markers without a length field", () => {
+  it("skips a standalone marker (TEM) and still reads the frame size", () => {
+    const sof = [0xff, 0xc0, 0x00, 0x11, 0x08, 0x00, 0x0a, 0x00, 0x0b, 0x03, 1, 0x11, 0, 2, 0x11, 1, 3, 0x11, 1];
+    const sos = [0xff, 0xda, 0x00, 0x08, 0x01, 0x01, 0x00, 0x00, 0x3f, 0x00];
+    const bytes = new Uint8Array([0xff, 0xd8, 0xff, 0x01, ...sof, ...sos, 0xff, 0xd9]);
+    expect(checkJpeg(bytes)).toEqual({ ok: true, width: 11, height: 10 });
+  });
+  it("refuses a frame header too short to hold a size", () => {
+    const bytes = new Uint8Array([0xff, 0xd8, 0xff, 0xc0, 0x00, 0x05, 0x08, 0x00, 0x0a, 0xff, 0xda, 0x00, 0x02]);
+    expect(checkJpeg(bytes)).toMatchObject({ ok: false, reason: "corrupt" });
+  });
+});

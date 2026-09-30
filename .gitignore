@@ -12,3 +12,5 @@ next-env.d.ts
 .data-e2e/
 test-results/
 playwright-report/
+coverage/
+.scannerwork/

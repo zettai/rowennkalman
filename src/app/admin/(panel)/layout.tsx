@@ -5,7 +5,7 @@ import { requireSession } from "@/lib/auth/server";
 
 export const dynamic = "force-dynamic";
 
-export default async function PanelLayout({ children }: { children: ReactNode }) {
+export default async function PanelLayout({ children }: Readonly<{ children: ReactNode }>) {
   await requireSession();
   return (
     <>

@@ -5,7 +5,8 @@ import { ConflictError, StoreError } from "./types";
 export function parseContent(raw: unknown, where: string): Content {
   const result = ContentSchema.safeParse(raw);
   if (!result.success) {
-    throw new StoreError(`Invalid content ${where}: ${result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")}`);
+    const problems = result.error.issues.map((i) => i.path.join(".") + ": " + i.message).join("; ");
+    throw new StoreError(`Invalid content ${where}: ${problems}`);
   }
   return result.data;
 }

@@ -2,13 +2,15 @@
 // Everything here is derived from the site's own content; nothing is invented.
 import type { Content, ImageRef } from "@/lib/content/schema";
 import { paragraphs } from "@/lib/content/schema";
+import { trimEndChars } from "@/lib/text";
 
 /** The start of the text (as many paragraphs as fit), cut on a word boundary to fit a search snippet. */
 export function excerpt(text: string, max = 155): string {
   const all = paragraphs(text).map((p) => p.replace(/\s+/g, " ").trim()).join(" ");
   if (all.length <= max) return all;
   const cut = all.slice(0, max - 1);
-  return cut.slice(0, cut.lastIndexOf(" ") > 60 ? cut.lastIndexOf(" ") : cut.length).replace(/[,;:.\s]+$/, "") + "…";
+  const words = cut.lastIndexOf(" ") > 60 ? cut.slice(0, cut.lastIndexOf(" ")) : cut;
+  return trimEndChars(words, ",;:. \t\n") + "…";
 }
 
 /** The page's own search description, or the start of its text, or the site's description. */
@@ -17,6 +19,26 @@ export function pageDescription(own: string | undefined, text: string, site: Con
 }
 
 type Json = Record<string, unknown>;
+
+/**
+ * The full link-preview (Open Graph) block for a page. Next.js replaces a parent's openGraph
+ * instead of merging it, so every page must carry the site name, type and the painting image.
+ */
+export function openGraphFor(
+  content: Content,
+  imageUrl: (key: string) => string,
+  page: { title?: string; description?: string; url?: string } = {},
+) {
+  const hero = content.home.heroImage;
+  return {
+    siteName: content.site.name,
+    type: "website" as const,
+    title: page.title,
+    description: page.description,
+    url: page.url,
+    images: hero ? [{ url: imageUrl(hero.key), width: hero.width, height: hero.height, alt: hero.alt }] : undefined,
+  };
+}
 
 export function personId(base: URL): string {
   return new URL("/#person", base).toString();
@@ -111,5 +133,5 @@ export function researchJsonLd(content: Content, base: URL): Json {
 /** One JSON-LD document; "undefined" fields are dropped by JSON.stringify. */
 export function jsonLdGraph(nodes: Json[]): string {
   // Escape "<" so the text can never close the <script> tag it sits in.
-  return JSON.stringify({ "@context": "https://schema.org", "@graph": nodes }).replace(/</g, "\\u003c");
+  return JSON.stringify({ "@context": "https://schema.org", "@graph": nodes }).replaceAll("<", String.raw`\u003c`);
 }

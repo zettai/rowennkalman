@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getSiteContent, imageUrl, paragraphs, siteUrl } from "@/components/site/content";
 import { Gallery } from "@/components/site/Gallery";
-import { artworksJsonLd, jsonLdGraph, pageDescription, portfolioSummary } from "@/components/site/seo";
+import { artworksJsonLd, jsonLdGraph, openGraphFor, pageDescription, portfolioSummary } from "@/components/site/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: content.site.nav.portfolio,
     description,
     alternates: { canonical: "/portfolio" },
-    openGraph: { title: `${content.site.nav.portfolio} | ${content.site.name}`, description, url: "/portfolio" },
+    openGraph: openGraphFor(content, imageUrl, { title: `${content.site.nav.portfolio} | ${content.site.name}`, description, url: "/portfolio" }),
   };
 }
 
@@ -29,8 +29,8 @@ export default async function PortfolioPage() {
       <h1 className="visually-hidden">{portfolio.title}</h1>
       {portfolio.intro && (
         <div className="prose portfolio-intro">
-          {paragraphs(portfolio.intro).map((p, i) => (
-            <p key={i}>{p}</p>
+          {paragraphs(portfolio.intro).map((p) => (
+            <p key={p}>{p}</p>
           ))}
         </div>
       )}

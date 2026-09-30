@@ -3,6 +3,7 @@ import path from "node:path";
 import { SignJWT, jwtVerify, errors } from "jose";
 import { issueSession, sessionSecret } from "./session";
 import { safeNext } from "./login-next";
+import { isEmailLike } from "@/lib/text";
 import { withSenderName } from "@/lib/contact/mailer";
 import { clientIp, createRateLimiter, type RateLimiter } from "@/lib/rate-limit";
 
@@ -25,7 +26,7 @@ export const linkEmailLimiter: RateLimiter = createRateLimiter({ limit: 5, windo
 export function normalizeEmail(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const email = value.trim().toLowerCase();
-  if (email.length > 320 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return null;
+  if (email.length > 320 || !isEmailLike(email)) return null;
   return email;
 }
 

@@ -25,7 +25,7 @@ type Props<T> = {
 };
 
 /** Renders one registry section: heading, hint and every field in it. */
-export function SectionFields<T>({ page, section, draft, onDraft, urls, onUploaded, onRelease, onBusyChange, artworks }: Props<T>) {
+export function SectionFields<T>({ page, section, draft, onDraft, urls, onUploaded, onRelease, onBusyChange, artworks }: Readonly<Props<T>>) {
   const rel = (path: string) => path.slice(page.length + 1);
   const headingId = `section-${page}-${section.id}`;
   return (

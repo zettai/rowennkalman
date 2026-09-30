@@ -238,3 +238,14 @@ describe("getStore selection", () => {
     expect(() => createStoreFromEnv({ ...full, ROWENNKALMAN_S3_SECRET_KEY: "" })).toThrow(/ROWENNKALMAN_S3_SECRET_KEY/);
   });
 });
+
+describe("getStore", () => {
+  it("uses the local file store when no bucket is configured, and keeps one per process", async () => {
+    const { getStore, setStoreForTests, FileStore } = await import("@/lib/store");
+    setStoreForTests(undefined);
+    const a = getStore();
+    expect(a).toBeInstanceOf(FileStore);
+    expect(getStore()).toBe(a);
+    setStoreForTests(undefined);
+  });
+});

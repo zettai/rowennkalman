@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getSiteContent, imageUrl, paragraphs, siteUrl, type Content } from "@/components/site/content";
 import { Painting } from "@/components/site/Painting";
-import { jsonLdGraph, pageDescription, researchJsonLd } from "@/components/site/seo";
+import { jsonLdGraph, openGraphFor, pageDescription, researchJsonLd } from "@/components/site/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -12,16 +12,16 @@ export async function generateMetadata(): Promise<Metadata> {
     title: content.site.nav.research,
     description,
     alternates: { canonical: "/research" },
-    openGraph: { title: `${content.site.nav.research} | ${content.site.name}`, description, url: "/research" },
+    openGraph: openGraphFor(content, imageUrl, { title: `${content.site.nav.research} | ${content.site.name}`, description, url: "/research" }),
   };
 }
 
-function Intro({ research, lang }: { research: Content["research"]; lang: "en" | "es" }) {
+function Intro({ research, lang }: Readonly<{ research: Content["research"]; lang: "en" | "es" }>) {
   const text = lang === "en" ? research.introEn : research.introEs;
   return (
     <div className="prose research-intro" lang={lang}>
-      {paragraphs(text).map((p, i) => (
-        <p key={i}>{p}</p>
+      {paragraphs(text).map((p) => (
+        <p key={p}>{p}</p>
       ))}
       <ul className="documents">
         {research.documents.map((d) => (

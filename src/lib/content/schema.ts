@@ -22,7 +22,7 @@ export const ImageRefSchema = z.object({
 });
 
 export const ArtworkSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   image: ImageRefSchema,
   title: z.string().max(200),
   medium: z.string().max(200),
@@ -43,7 +43,7 @@ const SeoDescription = z.string().max(300).default("");
 
 export const ContentSchema = z.object({
   version: z.literal(1),
-  updatedAt: z.string().datetime({ offset: true }),
+  updatedAt: z.iso.datetime({ offset: true }),
   site: z.object({
     name: z.string().max(200),
     metaTitle: z.string().max(200),
@@ -65,7 +65,7 @@ export const ContentSchema = z.object({
     heroSubtitle: z.string().max(500),
     heroImage: ImageRefSchema.nullable(),
     /** Up to three artwork ids, shown under the hero in this order. */
-    featured: z.array(z.string().uuid()).max(3),
+    featured: z.array(z.uuid()).max(3),
     portfolioLinkLabel: z.string().max(100),
   }),
   about: z.object({

@@ -9,6 +9,7 @@ import {
 import type { Content } from "@/lib/content/schema";
 import { ConflictError, StoreError, type ContentStore, type StoredImage } from "./types";
 import { assertImageKey, createMutex, parseContent, prepareWrite } from "./common";
+import { trimEndChars } from "@/lib/text";
 
 export type S3Config = {
   endpoint: string;
@@ -46,7 +47,7 @@ export class S3Store implements ContentStore {
 
   constructor(config: S3Config, client?: S3Like) {
     this.bucket = config.bucket;
-    this.base = config.publicImageBase.replace(/\/+$/, "");
+    this.base = trimEndChars(config.publicImageBase, "/");
     this.client =
       client ??
       new S3Client({

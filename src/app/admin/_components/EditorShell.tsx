@@ -23,7 +23,7 @@ type Props = {
 };
 
 /** Page frame: heading, form, sticky save bar, unsaved-changes guard. */
-export function EditorShell({ title, description, publicPath, dirty, busy, status, onSave, version, children }: Props) {
+export function EditorShell({ title, description, publicPath, dirty, busy, status, onSave, version, children }: Readonly<Props>) {
   const live = useLiveCheck(publicPath, status.kind === "saved" ? status.version : undefined);
   const newer = useStaleCheck(version);
   const conflictRef = useRef<HTMLDivElement>(null);
@@ -44,10 +44,11 @@ export function EditorShell({ title, description, publicPath, dirty, busy, statu
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
       if (!dirty || leaving.current) return;
       e.preventDefault();
-      e.returnValue = "";
+      // Deprecated, but some browsers still need it to show the "leave page?" prompt.
+      e.returnValue = ""; // NOSONAR: kept on purpose for browser compatibility (typescript:S1874)
     };
-    window.addEventListener("beforeunload", onBeforeUnload);
-    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+    globalThis.addEventListener("beforeunload", onBeforeUnload);
+    return () => globalThis.removeEventListener("beforeunload", onBeforeUnload);
   }, [dirty]);
 
   // Clicking a link inside the app with unsaved changes: ask in the page, not a browser dialog.
@@ -56,8 +57,8 @@ export function EditorShell({ title, description, publicPath, dirty, busy, statu
       if (!dirty || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       const a = (e.target as Element | null)?.closest?.("a[href]") as HTMLAnchorElement | null;
       if (!a || a.target === "_blank" || a.hasAttribute("download") || a.dataset.leave === "ok") return;
-      const url = new URL(a.href, window.location.href);
-      if (url.origin !== window.location.origin || url.pathname === window.location.pathname) return;
+      const url = new URL(a.href, globalThis.location.href);
+      if (url.origin !== globalThis.location.origin || url.pathname === globalThis.location.pathname) return;
       e.preventDefault();
       e.stopPropagation();
       setPendingHref(url.pathname + url.search);
@@ -78,18 +79,18 @@ export function EditorShell({ title, description, publicPath, dirty, busy, statu
         if (dirty && !busy) onSave();
       }
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    globalThis.addEventListener("keydown", onKey);
+    return () => globalThis.removeEventListener("keydown", onKey);
   }, [dirty, busy, onSave]);
 
   const leave = () => {
     if (!pendingHref) return;
     leaving.current = true;
-    window.location.assign(pendingHref);
+    globalThis.location.assign(pendingHref);
   };
   const reload = () => {
     leaving.current = true;
-    window.location.reload();
+    globalThis.location.reload();
   };
 
   return (
@@ -172,13 +173,13 @@ function StatusText({
   busy,
   onReload,
   live,
-}: {
+}: Readonly<{
   status: SaveStatus;
   dirty: boolean;
   busy?: boolean;
   onReload: () => void;
   live: LiveState | null;
-}) {
+}>) {
   switch (status.kind) {
     case "saving":
       return <span>Saving…</span>;
@@ -207,7 +208,7 @@ function StatusText({
           <a href="/admin/login" target="_blank" rel="noreferrer">
             Sign in again in a new tab
           </a>
-          , then come back and press Save. Your changes are still here.
+          {", then come back and press Save. Your changes are still here."}
         </span>
       );
     case "invalid":

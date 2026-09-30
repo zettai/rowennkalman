@@ -23,10 +23,10 @@ type Props = {
 };
 
 /** An ordered list of pictures with alt text, reorder and remove. */
-export function ImageListControl({ field, id, value, urls, artworks, onChange, onUploaded, onRelease, onBusyChange }: Props) {
+export function ImageListControl({ field, id, value, urls, artworks, onChange, onUploaded, onRelease, onBusyChange }: Readonly<Props>) {
   const focus = useMoveFocus();
   return (
-    <div className={s.field} role="group" aria-labelledby={`${id}-label`}>
+    <fieldset className={`${s.field} ${s.fs}`} aria-labelledby={`${id}-label`}>
       <span className={s.label} id={`${id}-label`}>
         {field.label}
       </span>
@@ -113,6 +113,6 @@ export function ImageListControl({ field, id, value, urls, artworks, onChange, o
           />
         </div>
       )}
-    </div>
+    </fieldset>
   );
 }

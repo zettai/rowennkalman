@@ -10,7 +10,7 @@ import { usePageEditor, type ImageUrls } from "./usePageEditor";
 type Props = { page: Exclude<PageKey, "portfolio">; content: Content; imageUrls: ImageUrls };
 
 /** Generic editor for a registry page: every section and field, one Save. */
-export function PageEditor({ page, content, imageUrls }: Props) {
+export function PageEditor({ page, content, imageUrls }: Readonly<Props>) {
   const def = getPageDef(page)!;
   const ed = usePageEditor(page, content, imageUrls);
   const [uploads, setUploads] = useState(0);

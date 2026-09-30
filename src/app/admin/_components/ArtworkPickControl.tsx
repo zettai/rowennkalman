@@ -14,12 +14,14 @@ type Props = {
 };
 
 /** Choose up to `field.max` paintings from the portfolio; the order of clicks is the order shown. */
-export function ArtworkPickControl({ field, id, value, artworks, urls, onChange }: Props) {
+export function ArtworkPickControl({ field, id, value, artworks, urls, onChange }: Readonly<Props>) {
   // Ids of paintings deleted from the portfolio are dropped here, so saving cleans them up.
   const chosen = value.filter((v) => artworks.some((a) => a.id === v));
   const full = chosen.length >= field.max;
+  let summary = "No paintings chosen: nothing is shown under the top of the home page.";
+  if (chosen.length > 0) summary = `${chosen.length} of ${field.max} chosen.` + (full ? " Take one out to choose another." : "");
   return (
-    <div className={s.field} role="group" aria-labelledby={`${id}-label`} aria-describedby={`${id}-hint`}>
+    <fieldset className={`${s.field} ${s.fs}`} aria-labelledby={`${id}-label`} aria-describedby={`${id}-hint`}>
       <span className={s.label} id={`${id}-label`}>
         {field.label}
       </span>
@@ -54,10 +56,8 @@ export function ArtworkPickControl({ field, id, value, artworks, urls, onChange 
         </ul>
       )}
       <p className={s.hint} aria-live="polite">
-        {chosen.length === 0
-          ? "No paintings chosen: nothing is shown under the top of the home page."
-          : `${chosen.length} of ${field.max} chosen.${full ? " Take one out to choose another." : ""}`}
+        {summary}
       </p>
-    </div>
+    </fieldset>
   );
 }

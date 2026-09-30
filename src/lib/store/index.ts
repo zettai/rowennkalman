@@ -38,7 +38,8 @@ let cached: ContentStore | undefined;
 
 /** The store for this process: S3Store when S3 env is complete, otherwise FileStore. */
 export function getStore(): ContentStore {
-  return (cached ??= createStoreFromEnv());
+  cached ??= createStoreFromEnv();
+  return cached;
 }
 
 /** Tests only: replace the process store. */

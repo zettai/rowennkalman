@@ -37,9 +37,9 @@ export function ImageFieldControl({
   artworks,
   urls,
   children,
-}: Props) {
+}: Readonly<Props>) {
   return (
-    <div className={s.field} role="group" aria-labelledby={`${id}-label`} aria-describedby={`${id}-hint`}>
+    <fieldset className={`${s.field} ${s.fs}`} aria-labelledby={`${id}-label`} aria-describedby={`${id}-hint`}>
       <span className={s.label} id={`${id}-label`}>
         {label}
       </span>
@@ -50,10 +50,8 @@ export function ImageFieldControl({
         {value && url ? (
           // eslint-disable-next-line @next/next/no-img-element -- admin preview of a bucket URL
           <img className={s.preview} src={url} alt={value.alt ? `Preview: ${value.alt}` : "Preview of the chosen picture"} />
-        ) : value ? (
-          <div className={s.previewEmpty}>Picture chosen</div>
         ) : (
-          <div className={s.previewEmpty}>No picture yet</div>
+          <div className={s.previewEmpty}>{value ? "Picture chosen" : "No picture yet"}</div>
         )}
         <div>
           <div className={s.row}>
@@ -101,6 +99,6 @@ export function ImageFieldControl({
           )}
         </div>
       </div>
-    </div>
+    </fieldset>
   );
 }

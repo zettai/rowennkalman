@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { navItems, type Content } from "./content";
 
-export function Footer({ site }: { site: Content["site"] }) {
+export function Footer({ site }: Readonly<{ site: Content["site"] }>) {
   return (
     <footer className="site-footer">
       <p className="footer-title">{site.name}</p>

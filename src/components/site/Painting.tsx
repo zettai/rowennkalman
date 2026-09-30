@@ -24,8 +24,10 @@ type Props = {
  * picture) and fades the real one in when it arrives, so a slow load reads as "coming"
  * instead of an empty grey box. Pictures without a preview simply fade in over grey.
  */
-export function Painting({ image, src, sizes, layout = "natural", fit = "cover", priority, eager, className }: Props) {
+export function Painting({ image, src, sizes, layout = "natural", fit = "cover", priority, eager, className }: Readonly<Props>) {
   const [loaded, setLoaded] = useState(Boolean(priority));
+  let loading: "eager" | "lazy" | undefined;
+  if (!priority) loading = eager ? "eager" : "lazy"; // priority images set their own loading
   const el = useRef<HTMLImageElement>(null);
   // Already in the cache before the page came alive: nothing to fade.
   useEffect(() => {
@@ -46,7 +48,7 @@ export function Painting({ image, src, sizes, layout = "natural", fit = "cover",
         fill
         sizes={sizes}
         priority={priority}
-        loading={priority ? undefined : eager ? "eager" : "lazy"}
+        loading={loading}
         data-loaded={loaded}
         style={{ objectFit: fit }}
         onLoad={() => setLoaded(true)}

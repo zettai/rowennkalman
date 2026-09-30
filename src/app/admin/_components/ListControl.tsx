@@ -16,9 +16,13 @@ function newId() {
 }
 
 /** An ordered list of small records (research documents). */
-export function ListControl({ field, id, value, onChange }: Props) {
+export function ListControl({ field, id, value, onChange }: Readonly<Props>) {
   const focus = useMoveFocus();
   const [confirming, setConfirming] = useState<string | null>(null);
+
+  /** Sets one field of the item at position index. */
+  const setField = (index: number, path: string, v: string) =>
+    onChange(value.map((it, j) => (j === index ? { ...it, [path]: v } : it)));
 
   const add = () => {
     const item: Item = { id: newId() };
@@ -47,7 +51,7 @@ export function ListControl({ field, id, value, onChange }: Props) {
                     field={f}
                     id={`${id}-${item.id}-${f.path}`}
                     value={item[f.path] ?? ""}
-                    onChange={(v) => onChange(value.map((it, j) => (j === i ? { ...it, [f.path]: v } : it)))}
+                    onChange={(v) => setField(i, f.path, v)}
                   />
                 ))}
               </fieldset>
@@ -79,7 +83,7 @@ export function ListControl({ field, id, value, onChange }: Props) {
                   ↓ Down
                 </button>
                 {confirming === item.id ? (
-                  <div className={s.confirm} role="group" aria-label={`Confirm removing ${name}`}>
+                  <fieldset className={`${s.confirm} ${s.fsBare}`} aria-label={`Confirm removing ${name}`}>
                     <p>Remove {name}? It disappears from the site when you save.</p>
                     <div className={s.row}>
                       <button
@@ -97,7 +101,7 @@ export function ListControl({ field, id, value, onChange }: Props) {
                         Keep it
                       </button>
                     </div>
-                  </div>
+                  </fieldset>
                 ) : (
                   <button type="button" className={s.buttonQuiet} onClick={() => setConfirming(item.id)}>
                     Remove…

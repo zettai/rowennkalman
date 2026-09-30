@@ -28,7 +28,7 @@ const blankArtwork = (image: ImageRef): Artwork => ({
 
 const artName = (a: Artwork) => (a.title.trim() ? `“${a.title.trim()}”` : "this painting");
 
-export function PortfolioEditor({ content, imageUrls }: Props) {
+export function PortfolioEditor({ content, imageUrls }: Readonly<Props>) {
   const def = getPageDef("portfolio")!;
   const ed = usePageEditor("portfolio", content, imageUrls);
   const [uploads, setUploads] = useState(0);
@@ -103,7 +103,7 @@ export function PortfolioEditor({ content, imageUrls }: Props) {
         <p className={s.sectionHint}>Shown on the site in this order. Use Up and Down to change the order.</p>
 
         {adding ? (
-          <div className={s.section} style={{ background: "#fbfaf7" }} role="group" aria-labelledby="add-title">
+          <fieldset className={`${s.section} ${s.fsBare}`} style={{ background: "#fbfaf7" }} aria-labelledby="add-title">
             <h3 className={s.sectionTitle} id="add-title">
               New painting
             </h3>
@@ -138,7 +138,7 @@ export function PortfolioEditor({ content, imageUrls }: Props) {
                 Cancel
               </button>
             </div>
-          </div>
+          </fieldset>
         ) : (
           <div style={{ marginBottom: 16 }}>
             <ImagePicker
@@ -213,7 +213,7 @@ export function PortfolioEditor({ content, imageUrls }: Props) {
                     )}
                   </div>
                   {confirming === a.id && (
-                    <div className={s.confirm} role="group" aria-label={`Confirm deleting ${name}`}>
+                    <fieldset className={`${s.confirm} ${s.fsBare}`} aria-label={`Confirm deleting ${name}`}>
                       <p>Delete {name}? It will be removed from the site, with its picture, when you save.</p>
                       <div className={s.row}>
                         <button type="button" className={s.buttonDanger} onClick={() => remove(a)}>
@@ -223,7 +223,7 @@ export function PortfolioEditor({ content, imageUrls }: Props) {
                           Keep it
                         </button>
                       </div>
-                    </div>
+                    </fieldset>
                   )}
                 </div>
                 {open && (

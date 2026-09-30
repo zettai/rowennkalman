@@ -7,6 +7,6 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function AdminRootLayout({ children }: { children: ReactNode }) {
+export default function AdminRootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return <div className={s.root}>{children}</div>;
 }

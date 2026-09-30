@@ -1,15 +1,14 @@
 # rowennkalman.com revamp — plan
 
-## Status (2026-09-29): LIVE on rowennkalman.com from `master`; only the real-email check remains (see docs/AUDIT.md)
+## Status (2026-09-30): live and maintained from `master`
 
-MVP built and integrated on branch `revamp`: public pages + the cloud agent's admin/content backend
-(`docs/admin-REPORT.md`), magic-link sign-in, "use a painting from your portfolio" on every
-picture field, chosen paintings on Home. Real content lives in the local store `.data/` (gitignored).
-110 unit + 9 e2e tests pass (`npm test`, `npx playwright test e2e/admin.spec.ts`).
-
-To go live (needs Luis): ~~Scaleway bucket + key → seed~~ done 2026-09-29 (see docs/AUDIT.md, "Go-live checks");
-Resend domain + sending key; Netlify env vars (names in `.env.example`) for build and functions;
-Netlify build settings to Next.js; merge `revamp` → `master`.
+Live on rowennkalman.com: public site (Home, About, Portfolio, Research, Contact), the admin at `/admin`
+with email sign-in (Rowenn + Luis), content and photos in the Scaleway bucket, email via Resend
+(`rowennkalman.com` verified; the first sign-in mail landed in Gmail spam, marked "not spam").
+Every push to `master` deploys. Checks: `npm test` (136 unit), `npx playwright test e2e/admin.spec.ts`
+(9 e2e, local store only), `npm run sonar` (gate OK, 0 issues). Audits and incidents: `docs/AUDIT.md`.
+Open for Rowenn: painting titles/details/descriptions, review of the English Research text.
+The sections below keep the original plan and decisions for reference.
 
 Grilled and agreed 2026-09-29. Source of design + content: Rowenn's Squarespace draft
 (`harpsichord-fiddle-8h7n.squarespace.com`, private, trial ends 2026-10-13).
@@ -71,6 +70,13 @@ purges the tag (`src/lib/cdn.ts`) and logs `purge` in the save line. Proven on a
 cached page kept the old version after a content change until the purge, then switched at once, both
 with the API and from inside the function. The earlier Next ISR set-up served stale pages after a
 save; don't go back to it.
+
+## Code quality (SonarQube, on demand)
+
+`npm run sonar` (scripts/sonar.sh): tests with coverage, scan to sona-z (project `rowennkalman`),
+then the quality gate, key numbers and open issues (most severe first). `scripts/sonar.sh --issues`
+re-prints the last analysis without scanning. Token: project analysis token in the Keychain item
+`rowennkalman-sonar-token` (it can't read security hotspots; review those in the web UI).
 
 ## Work split
 

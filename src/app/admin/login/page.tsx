@@ -17,7 +17,7 @@ const ERRORS: Record<string, string> = {
   mail: "The email could not be sent just now. Please try again in a few minutes.",
 };
 
-export default async function LoginPage({ searchParams }: Props) {
+export default async function LoginPage({ searchParams }: Readonly<Props>) {
   const { error, next, signedOut, sent } = await searchParams;
   if (await getSession().catch(() => null)) redirect(safeNext(next));
   const message = error ? (ERRORS[error] ?? ERRORS.invalid) : null;
@@ -28,9 +28,9 @@ export default async function LoginPage({ searchParams }: Props) {
         <h1 className={s.h1}>Sign in to edit your site</h1>
         {sent && !message ? (
           <>
-            <p className={s.noticeOk} role="status">
+            <output className={s.noticeOk}>
               Check your email. If this address can edit the site, a sign-in link is on its way. It works for 15 minutes.
-            </p>
+            </output>
             <p className={s.lead}>
               No email after a few minutes? Look in your spam folder, or <Link href="/admin/login">ask for a new link</Link>.
             </p>
@@ -39,9 +39,9 @@ export default async function LoginPage({ searchParams }: Props) {
           <>
             <p className={s.lead}>Enter your email address and we&apos;ll send you a link to sign in. No password needed.</p>
             {signedOut && !message && (
-              <p className={s.noticeOk} role="status">
+              <output className={s.noticeOk}>
                 You are signed out.
-              </p>
+              </output>
             )}
             {message && (
               <p className={s.noticeError} role="alert" id="login-error">

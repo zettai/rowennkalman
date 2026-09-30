@@ -647,3 +647,7 @@ main:has(.portfolio) + .site-footer {
     transition: none;
   }
 }
+
+output.form-status {
+  display: block;
+}

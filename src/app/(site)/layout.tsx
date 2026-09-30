@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { getSiteContent, imageUrl, siteUrl } from "@/components/site/content";
-import { jsonLdGraph, personJsonLd, websiteJsonLd } from "@/components/site/seo";
+import { jsonLdGraph, openGraphFor, personJsonLd, websiteJsonLd } from "@/components/site/seo";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import "@/styles/globals.css";
@@ -19,18 +19,14 @@ export async function generateMetadata(): Promise<Metadata> {
     title: { default: site.metaTitle, template: `%s | ${site.name}` },
     description: site.metaDescription,
     // Link previews (messages, social posts) show the painting beside her name.
-    openGraph: {
-      siteName: site.name,
-      type: "website",
-      images: hero ? [{ url: imageUrl(hero.key), width: hero.width, height: hero.height, alt: hero.alt }] : undefined,
-    },
+    openGraph: openGraphFor(content, imageUrl),
     twitter: { card: hero ? "summary_large_image" : "summary" },
     // Which save this page shows: compare with the admin's save time when debugging.
     other: { "content-version": content.updatedAt },
   };
 }
 
-export default async function SiteLayout({ children }: { children: ReactNode }) {
+export default async function SiteLayout({ children }: Readonly<{ children: ReactNode }>) {
   const content = await getSiteContent();
   const { site } = content;
   const base = siteUrl();

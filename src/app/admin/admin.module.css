@@ -573,3 +573,25 @@
   background: #111;
   border-radius: 999px;
 }
+
+/* Native fieldsets for grouped controls: no browser border or padding. */
+.fs {
+  border: 0;
+  padding: 0;
+  margin-inline: 0;
+  min-width: 0;
+}
+
+/* <output> status messages lay out like the paragraphs they replaced. */
+output.noticeOk,
+output.noticeWarn,
+output.noticeError,
+output.notice {
+  display: block;
+}
+
+/* Fieldsets that already have their own border and padding (.section, .confirm). */
+.fsBare {
+  margin-inline: 0;
+  min-width: 0;
+}

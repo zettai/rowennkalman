@@ -19,7 +19,7 @@ type Props = {
 };
 
 /** A disclosure listing the portfolio's paintings; picking one reuses its picture (no upload). */
-export function ArtworkChooser({ artworks, urls, label, onPick }: Props) {
+export function ArtworkChooser({ artworks, urls, label, onPick }: Readonly<Props>) {
   const details = useRef<HTMLDetailsElement>(null);
   if (artworks.length === 0) return null;
   return (

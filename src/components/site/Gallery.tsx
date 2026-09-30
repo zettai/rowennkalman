@@ -14,7 +14,7 @@ function details(a: Artwork): string {
   return [a.medium, a.size, a.year].filter(Boolean).join(", ");
 }
 
-export function Gallery({ items }: { items: Item[] }) {
+export function Gallery({ items }: Readonly<{ items: Item[] }>) {
   const dialog = useRef<HTMLDialogElement>(null);
   const opener = useRef<HTMLButtonElement | null>(null);
   const [index, setIndex] = useState<number | null>(null);
@@ -41,11 +41,18 @@ export function Gallery({ items }: { items: Item[] }) {
       setIndex(null);
       opener.current?.focus();
     };
+    // A click on the dark backdrop (the dialog itself, outside its content) closes it; Escape
+    // closes it natively and the Close button does too.
+    const onBackdrop = (e: MouseEvent) => {
+      if (e.target === el) el.close();
+    };
     el.addEventListener("keydown", onKey);
     el.addEventListener("close", onClose);
+    el.addEventListener("click", onBackdrop);
     return () => {
       el.removeEventListener("keydown", onKey);
       el.removeEventListener("close", onClose);
+      el.removeEventListener("click", onBackdrop);
     };
   }, [step]);
 
@@ -88,9 +95,6 @@ export function Gallery({ items }: { items: Item[] }) {
         ref={dialog}
         className="lightbox"
         aria-label={current?.title || "Artwork"}
-        onClick={(e) => {
-          if (e.target === e.currentTarget) dialog.current?.close();
-        }}
       >
         {current && (
           <div className="lightbox-inner">

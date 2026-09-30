@@ -11,7 +11,7 @@ export const JPEG_QUALITY = 0.85;
 export const BLUR_EDGE = 20;
 const MAX_BYTES = 5 * 1024 * 1024;
 
-const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const ACCEPTED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const ACCEPTED_EXT = /\.(jpe?g|png|webp)$/i;
 
 /** For <input accept>. */
@@ -25,7 +25,7 @@ export function fileTypeProblem(file: { name: string; type: string }): string | 
   if (/hei[cf]/.test(type) || /\.hei[cf]$/i.test(file.name)) {
     return "iPhone HEIC photos can't be used directly. On the iPhone, share or export the photo as JPEG (or set Settings > Camera > Formats to Most Compatible), then try again.";
   }
-  if (ACCEPTED_TYPES.includes(type) || (!type && ACCEPTED_EXT.test(file.name))) return null;
+  if (ACCEPTED_TYPES.has(type) || (!type && ACCEPTED_EXT.test(file.name))) return null;
   return "That file type can't be used. Please choose a JPEG, PNG or WebP picture.";
 }
 

@@ -8,12 +8,12 @@ import { PortfolioEditor } from "../../_components/PortfolioEditor";
 
 type Params = { params: Promise<{ page: string }> };
 
-export async function generateMetadata({ params }: Params): Promise<Metadata> {
+export async function generateMetadata({ params }: Readonly<Params>): Promise<Metadata> {
   const def = getPageDef((await params).page);
   return { title: def ? `${def.title} · Site editor` : "Site editor" };
 }
 
-export default async function EditPage({ params }: Params) {
+export default async function EditPage({ params }: Readonly<Params>) {
   const def = getPageDef((await params).page);
   if (!def) notFound();
   const store = getStore();

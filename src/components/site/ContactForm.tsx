@@ -7,11 +7,11 @@ type Labels = Content["contact"]["form"];
 type Status = "idle" | "sending" | "sent" | "error";
 
 // Posts the contract shape from the admin request: { name, email, message, website, startedAt }.
-export function ContactForm({ labels }: { labels: Labels }) {
+export function ContactForm({ labels }: Readonly<{ labels: Labels }>) {
   const startedAt = useRef(Date.now());
   const [status, setStatus] = useState<Status>("idle");
 
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
     setStatus("sending");
@@ -35,9 +35,9 @@ export function ContactForm({ labels }: { labels: Labels }) {
 
   if (status === "sent") {
     return (
-      <p className="form-status" role="status">
+      <output className="form-status">
         {labels.successMessage}
-      </p>
+      </output>
     );
   }
 
@@ -63,7 +63,7 @@ export function ContactForm({ labels }: { labels: Labels }) {
       </label>
       {/* Honeypot: hidden from people, filled in by bots. */}
       <label className="hp" aria-hidden="true">
-        Website
+        {"Website "}
         <input name="website" tabIndex={-1} autoComplete="off" />
       </label>
       <button type="submit" className="button" disabled={status === "sending"}>

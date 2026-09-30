@@ -1,20 +1,19 @@
 import { z } from "zod";
 
 import { CONTACT_LIMITS } from "./limits";
+import { isEmailLike } from "@/lib/text";
 
 export { CONTACT_LIMITS };
 /** Humans take longer than this to fill in the form; bots usually don't. */
 export const MIN_FILL_MS = 3000;
 
-// Pragmatic email check: one @, no spaces, a dot in the domain.
-const EMAIL = /^[^\s@<>()[\]\\,;:"]+@[^\s@<>()[\]\\,;:"]+\.[^\s@<>()[\]\\,;:"]{2,}$/;
 
 const ContactBody = z.object({
   name: z.string(),
   email: z.string(),
   message: z.string(),
   website: z.string().optional().default(""),
-  startedAt: z.number().finite(),
+  startedAt: z.number(), // finite by default in zod 4
 });
 
 export type ContactMessage = { name: string; email: string; message: string };
@@ -43,7 +42,7 @@ export function checkContact(raw: unknown, now: number): ContactCheck {
   const message = clean(parsed.data.message, true);
   if (!name) return { kind: "invalid", error: "Please enter your name.", field: "name" };
   if (name.length > CONTACT_LIMITS.name) return { kind: "invalid", error: "Your name is too long.", field: "name" };
-  if (email.length > CONTACT_LIMITS.email || !EMAIL.test(email)) {
+  if (email.length > CONTACT_LIMITS.email || !isEmailLike(email, { strict: true })) {
     return { kind: "invalid", error: "Please enter a valid email address.", field: "email" };
   }
   if (message.length < 2) return { kind: "invalid", error: "Please write a message.", field: "message" };

@@ -13,7 +13,7 @@ type Props = {
 };
 
 /** A button that picks a picture, prepares it in the browser and uploads it. */
-export function ImagePicker({ label, onUploaded, onBusyChange, secondary, testId }: Props) {
+export function ImagePicker({ label, onUploaded, onBusyChange, secondary, testId }: Readonly<Props>) {
   const id = useId();
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);

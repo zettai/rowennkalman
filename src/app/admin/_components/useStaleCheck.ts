@@ -25,13 +25,13 @@ export function useStaleCheck(loadedVersion: string, intervalMs = 60_000): strin
     };
     const onVisible = () => void check();
     document.addEventListener("visibilitychange", onVisible);
-    window.addEventListener("focus", onVisible);
-    const timer = window.setInterval(check, intervalMs);
+    globalThis.addEventListener("focus", onVisible);
+    const timer = globalThis.setInterval(check, intervalMs);
     return () => {
       stopped = true;
       document.removeEventListener("visibilitychange", onVisible);
-      window.removeEventListener("focus", onVisible);
-      window.clearInterval(timer);
+      globalThis.removeEventListener("focus", onVisible);
+      globalThis.clearInterval(timer);
     };
   }, [loadedVersion, intervalMs]);
   // A save from this page moves loadedVersion forward, which clears the warning.

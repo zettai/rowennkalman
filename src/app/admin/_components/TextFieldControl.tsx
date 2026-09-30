@@ -9,7 +9,7 @@ export function fieldId(path: string) {
 
 type Props = { field: TextField; id: string; value: string; onChange: (v: string) => void };
 
-export function TextFieldControl({ field, id, value, onChange }: Props) {
+export function TextFieldControl({ field, id, value, onChange }: Readonly<Props>) {
   const hintId = `${id}-hint`;
   const over = field.maxLength !== undefined && value.length > field.maxLength;
   const urlProblem = field.kind === "url" && value.trim() !== "" && !/^(https?:\/\/|mailto:|\/)/i.test(value.trim());

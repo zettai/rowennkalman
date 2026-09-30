@@ -1,3 +1,8 @@
+> **HISTORICAL (2026-09-29).** The cloud agent's report, kept as written. Since then: sign-in is an
+> email magic link (no password, no `bcryptjs`, no `hash-password` script); the schema gained
+> `home.featured`, `portfolioLinkLabel`, `research.image`, `seoDescription`, `image.blur`; see
+> `docs/PLAN.md` for the current state.
+
 # REPORT: rowennkalman admin + content backend
 
 Everything behind the public pages of the portfolio site: the content contract, three stores, auth, the admin UI, browser-side uploads and the contact API. It's a Next.js 15 App Router app in this folder. The one public page is the throwaway `src/app/(site)/page.tsx`.

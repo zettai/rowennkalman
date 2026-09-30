@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getSiteContent, imageUrl, paragraphs } from "@/components/site/content";
 import { ContactForm } from "@/components/site/ContactForm";
 import { Painting } from "@/components/site/Painting";
-import { pageDescription } from "@/components/site/seo";
+import { openGraphFor, pageDescription } from "@/components/site/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: content.site.nav.contact,
     description,
     alternates: { canonical: "/contact" },
-    openGraph: { title: `${content.site.nav.contact} | ${content.site.name}`, description, url: "/contact" },
+    openGraph: openGraphFor(content, imageUrl, { title: `${content.site.nav.contact} | ${content.site.name}`, description, url: "/contact" }),
   };
 }
 
@@ -24,8 +24,8 @@ export default async function ContactPage() {
       <div className="contact-text">
         <h1 className="display">{contact.title}</h1>
         <div className="prose">
-          {paragraphs(contact.intro).map((p, i) => (
-            <p key={i}>{p}</p>
+          {paragraphs(contact.intro).map((p) => (
+            <p key={p}>{p}</p>
           ))}
         </div>
         <ContactForm labels={contact.form} />

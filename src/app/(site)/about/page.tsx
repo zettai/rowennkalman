@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Fragment } from "react";
 import { getSiteContent, imageUrl, paragraphs } from "@/components/site/content";
 import { Painting } from "@/components/site/Painting";
-import { pageDescription } from "@/components/site/seo";
+import { openGraphFor, pageDescription } from "@/components/site/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: content.site.nav.about,
     description,
     alternates: { canonical: "/about" },
-    openGraph: { title: `${content.site.nav.about} | ${content.site.name}`, description, url: "/about" },
+    openGraph: openGraphFor(content, imageUrl, { title: `${content.site.nav.about} | ${content.site.name}`, description, url: "/about" }),
   };
 }
 
@@ -39,7 +39,7 @@ export default async function AboutPage() {
         {text.map((p, i) => {
           const slot = AFTER_PARAGRAPH.indexOf(i + 1);
           return (
-            <Fragment key={i}>
+            <Fragment key={p}>
               <p>{p}</p>
               {slot >= 0 && slotted[slot] && picture(slotted[slot])}
             </Fragment>

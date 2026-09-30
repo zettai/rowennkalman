@@ -14,7 +14,9 @@
     "test": "jest",
     "e2e": "playwright test",
     "hash-password": "node scripts/hash-password.mjs",
-    "placeholders": "node scripts/make-placeholders.mjs"
+    "placeholders": "node scripts/make-placeholders.mjs",
+    "test:coverage": "jest --coverage --coverageReporters=lcov --coverageReporters=text-summary",
+    "sonar": "scripts/sonar.sh"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1143.0",
