@@ -2,12 +2,19 @@ import type { Metadata } from "next";
 import { getSiteContent, imageUrl, paragraphs } from "@/components/site/content";
 import { ContactForm } from "@/components/site/ContactForm";
 import { Painting } from "@/components/site/Painting";
+import { pageDescription } from "@/components/site/seo";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { site } = await getSiteContent();
-  return { title: site.nav.contact, alternates: { canonical: "/contact" } };
+  const content = await getSiteContent();
+  const description = pageDescription(content.contact.seoDescription, content.contact.intro, content.site);
+  return {
+    title: content.site.nav.contact,
+    description,
+    alternates: { canonical: "/contact" },
+    openGraph: { title: `${content.site.nav.contact} | ${content.site.name}`, description, url: "/contact" },
+  };
 }
 
 export default async function ContactPage() {

@@ -1,12 +1,19 @@
 import type { Metadata } from "next";
-import { getSiteContent, imageUrl, paragraphs, type Content } from "@/components/site/content";
+import { getSiteContent, imageUrl, paragraphs, siteUrl, type Content } from "@/components/site/content";
 import { Painting } from "@/components/site/Painting";
+import { jsonLdGraph, pageDescription, researchJsonLd } from "@/components/site/seo";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { site } = await getSiteContent();
-  return { title: site.nav.research, alternates: { canonical: "/research" } };
+  const content = await getSiteContent();
+  const description = pageDescription(content.research.seoDescription, content.research.introEn, content.site);
+  return {
+    title: content.site.nav.research,
+    description,
+    alternates: { canonical: "/research" },
+    openGraph: { title: `${content.site.nav.research} | ${content.site.name}`, description, url: "/research" },
+  };
 }
 
 function Intro({ research, lang }: { research: Content["research"]; lang: "en" | "es" }) {
@@ -29,9 +36,11 @@ function Intro({ research, lang }: { research: Content["research"]; lang: "en" |
 }
 
 export default async function ResearchPage() {
-  const { research } = await getSiteContent();
+  const content = await getSiteContent();
+  const { research } = content;
   return (
     <section className="page research">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdGraph([researchJsonLd(content, siteUrl())]) }} />
       <h1 className="display page-title">{research.title}</h1>
       <div className="research-grid">
         {research.image && (

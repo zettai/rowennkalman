@@ -46,6 +46,17 @@ Grilled and agreed 2026-09-29. Source of design + content: Rowenn's Squarespace 
    Delete the Miniport template + placeholder pics. Photos in `assets/` go to the bucket,
    not git (reconcile: 20 originals vs ~26 images in the draft).
 
+## SEO (2026-09-30)
+
+- Google Search Console: domain property verified (TXT record on the apex in Netlify DNS; keep it),
+  `sitemap.xml` submitted, home page indexing requested.
+- Each page has its own description (admin field "Description in search results", default = start
+  of the page's text); JSON-LD WebSite + Person everywhere, VisualArtwork per painting on
+  Portfolio, the thesis PDFs on Research; the sitemap lists 20 photos.
+- Next, when paintings have titles: a page per painting (`/portfolio/<slug>`). Content and links
+  (titles/descriptions in her voice, Instagram bio, galleries, the thesis's university page) matter
+  more than any code. Google says llms.txt / AI-specific rewrites aren't needed.
+
 ## Debugging
 
 - Every public page carries `<meta name="content-version">`: the save it shows.

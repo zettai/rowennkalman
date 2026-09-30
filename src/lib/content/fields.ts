@@ -121,6 +121,13 @@ export const PAGES: PageDef[] = [
           { kind: "text", path: "about.title", label: "Page title", hint: "The heading at the top of the About page." },
           {
             kind: "textarea",
+            path: "about.seoDescription",
+            label: "Description in search results",
+            hint: "The sentence or two Google may show under this page in search results (about 150 characters). Leave empty to use the start of the page's text.",
+            maxLength: 160,
+          },
+          {
+            kind: "textarea",
             path: "about.body",
             label: "Your story",
             hint: "Leave an empty line between paragraphs to start a new one.",
@@ -160,6 +167,13 @@ export const PAGES: PageDef[] = [
           },
           {
             kind: "textarea",
+            path: "portfolio.seoDescription",
+            label: "Description in search results",
+            hint: "The sentence or two Google may show under this page in search results (about 150 characters). Leave empty to use the start of the page's text.",
+            maxLength: 160,
+          },
+          {
+            kind: "textarea",
             path: "portfolio.intro",
             label: "Introduction",
             hint: "A few words shown above your paintings. Can be left empty.",
@@ -179,6 +193,13 @@ export const PAGES: PageDef[] = [
         title: "Words",
         fields: [
           { kind: "text", path: "research.title", label: "Page title", hint: "The heading at the top of the Research page." },
+          {
+            kind: "textarea",
+            path: "research.seoDescription",
+            label: "Description in search results",
+            hint: "The sentence or two Google may show under this page in search results (about 150 characters). Leave empty to use the start of the page's text.",
+            maxLength: 160,
+          },
           {
             kind: "textarea",
             path: "research.introEn",
@@ -236,6 +257,13 @@ export const PAGES: PageDef[] = [
         title: "Words and picture",
         fields: [
           { kind: "text", path: "contact.title", label: "Page title", hint: "The heading at the top of the Contact page." },
+          {
+            kind: "textarea",
+            path: "contact.seoDescription",
+            label: "Description in search results",
+            hint: "The sentence or two Google may show under this page in search results (about 150 characters). Leave empty to use the start of the page's text.",
+            maxLength: 160,
+          },
           {
             kind: "textarea",
             path: "contact.intro",

@@ -38,6 +38,9 @@ const ResearchDocumentSchema = z.object({
   href: z.string().max(2000),
 });
 
+/** Text for search results on one page; empty means "use the start of the page's text". */
+const SeoDescription = z.string().max(300).default("");
+
 export const ContentSchema = z.object({
   version: z.literal(1),
   updatedAt: z.string().datetime({ offset: true }),
@@ -67,16 +70,19 @@ export const ContentSchema = z.object({
   }),
   about: z.object({
     title: z.string().max(200),
+    seoDescription: SeoDescription,
     body: z.string().max(20000),
     images: z.array(ImageRefSchema).max(20),
   }),
   portfolio: z.object({
     title: z.string().max(200),
+    seoDescription: SeoDescription,
     intro: z.string().max(5000),
     artworks: z.array(ArtworkSchema).max(500),
   }),
   research: z.object({
     title: z.string().max(200),
+    seoDescription: SeoDescription,
     introEn: z.string().max(20000),
     introEs: z.string().max(20000),
     image: ImageRefSchema.nullable(),
@@ -84,6 +90,7 @@ export const ContentSchema = z.object({
   }),
   contact: z.object({
     title: z.string().max(200),
+    seoDescription: SeoDescription,
     intro: z.string().max(5000),
     image: ImageRefSchema.nullable(),
     form: z.object({

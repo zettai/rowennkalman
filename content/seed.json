@@ -34,6 +34,7 @@
   },
   "about": {
     "title": "About",
+    "seoDescription": "Placeholder search description for the about page.",
     "body": "Placeholder paragraph one. A few sentences about the artist, the studio and the landscapes that shape the work.\n\nPlaceholder paragraph two. A few sentences about ecology, fieldwork and why painting matters for it.",
     "images": [
       {
@@ -46,6 +47,7 @@
   },
   "portfolio": {
     "title": "Portfolio",
+    "seoDescription": "Placeholder search description for the portfolio page.",
     "intro": "Placeholder introduction to the paintings.",
     "artworks": [
       {
@@ -94,6 +96,7 @@
   },
   "research": {
     "title": "Research",
+    "seoDescription": "Placeholder search description for the research page.",
     "introEn": "Placeholder English introduction to the thesis research.",
     "introEs": "Introducción de ejemplo a la investigación de la tesis.",
     "image": null,
@@ -108,6 +111,7 @@
   },
   "contact": {
     "title": "Contact",
+    "seoDescription": "Placeholder search description for the contact page.",
     "intro": "Placeholder invitation to get in touch about commissions or research.",
     "image": null,
     "form": {

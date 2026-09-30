@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { getSiteContent, imageUrl, siteUrl } from "@/components/site/content";
+import { jsonLdGraph, personJsonLd, websiteJsonLd } from "@/components/site/seo";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import "@/styles/globals.css";
@@ -30,9 +31,15 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function SiteLayout({ children }: { children: ReactNode }) {
-  const { site } = await getSiteContent();
+  const content = await getSiteContent();
+  const { site } = content;
+  const base = siteUrl();
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLdGraph([websiteJsonLd(content, base), personJsonLd(content, base, imageUrl)]) }}
+      />
       <noscript>
         <style>{".fi img{opacity:1!important}"}</style>
       </noscript>

@@ -2,12 +2,19 @@ import type { Metadata } from "next";
 import { Fragment } from "react";
 import { getSiteContent, imageUrl, paragraphs } from "@/components/site/content";
 import { Painting } from "@/components/site/Painting";
+import { pageDescription } from "@/components/site/seo";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { site } = await getSiteContent();
-  return { title: site.nav.about, alternates: { canonical: "/about" } };
+  const content = await getSiteContent();
+  const description = pageDescription(content.about.seoDescription, content.about.body, content.site);
+  return {
+    title: content.site.nav.about,
+    description,
+    alternates: { canonical: "/about" },
+    openGraph: { title: `${content.site.nav.about} | ${content.site.name}`, description, url: "/about" },
+  };
 }
 
 // Pictures go after these paragraphs (1-based), in order; extra pictures follow the text.

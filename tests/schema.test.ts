@@ -13,6 +13,7 @@ function stringLeaves(schema: z.ZodType, prefix = ""): string[] {
     );
   }
   if (schema instanceof z.ZodArray) return stringLeaves(schema.element as z.ZodType, `${prefix}[]`);
+  if (schema instanceof z.ZodDefault) return stringLeaves(schema.unwrap() as z.ZodType, prefix);
   if (schema instanceof z.ZodNullable || schema instanceof z.ZodOptional) {
     return stringLeaves(schema.unwrap() as z.ZodType, prefix);
   }
