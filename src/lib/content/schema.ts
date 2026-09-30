@@ -13,6 +13,12 @@ export const ImageRefSchema = z.object({
   width: z.number().int().positive(),
   height: z.number().int().positive(),
   alt: z.string().max(500),
+  /** A tiny blurred JPEG (data URL, ~20 px) shown while the real picture loads. Optional: older pictures have none. */
+  blur: z
+    .string()
+    .max(2000)
+    .regex(/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/, "Blur preview must be a small JPEG data URL")
+    .optional(),
 });
 
 export const ArtworkSchema = z.object({

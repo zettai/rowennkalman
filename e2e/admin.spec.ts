@@ -59,6 +59,11 @@ test("add an artwork, move it up, see the order on /portfolio, delete it and its
   await expect(page.getByRole("button", { name: `Move “${title}” up` })).toBeFocused();
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page.getByTestId("save-status")).toContainText("Saved");
+  // The browser made a tiny blurred preview for the loading state and it was saved with the picture.
+  const saved = (await (await page.request.get("/api/admin/content")).json()) as { content?: { portfolio: { artworks: { title: string; image: { blur?: string } }[] } } };
+  const savedArt = (saved.content ?? (saved as never as NonNullable<typeof saved.content>)).portfolio.artworks.find((a) => a.title === title);
+  expect(savedArt?.image.blur).toMatch(/^data:image\/jpeg;base64,/);
+  expect(savedArt!.image.blur!.length).toBeLessThan(2000);
 
   // The stored image is a clean JPEG (EXIF stripped by the browser, re-checked by the server).
   const img = await request.get(src!);

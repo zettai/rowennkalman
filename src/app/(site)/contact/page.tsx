@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { getSiteContent, imageUrl, paragraphs } from "@/components/site/content";
 import { ContactForm } from "@/components/site/ContactForm";
+import { Painting } from "@/components/site/Painting";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { site } = await getSiteContent();
@@ -23,11 +23,12 @@ export default async function ContactPage() {
       </div>
       {contact.image && (
         <div className="feature-image">
-          <Image
+          <Painting
+            image={contact.image}
             src={imageUrl(contact.image.key)}
-            alt={contact.image.alt}
-            fill
             sizes="(max-width: 767px) 100vw, 34vw"
+            layout="fill"
+            priority
           />
         </div>
       )}

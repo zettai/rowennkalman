@@ -26,6 +26,9 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
   const { site } = await getSiteContent();
   return (
     <>
+      <noscript>
+        <style>{".fi img{opacity:1!important}"}</style>
+      </noscript>
       <a className="skip" href="#main">Skip to content</a>
       <Header site={site} />
       <main id="main">{children}</main>

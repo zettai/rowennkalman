@@ -25,6 +25,7 @@ function isExcluded(path: string): boolean {
   if (path === "version" || path === "updatedAt") return true;
   if (path.startsWith("portfolio.artworks")) return true; // artwork editor has its own screen
   if (/(^|\.)key$/.test(path)) return true; // image bucket keys
+  if (/(^|\.|\[\]\.)blur$/.test(path)) return true; // generated loading previews
   if (/(^|\.|\[\]\.)id$/.test(path)) return true; // ids
   return false;
 }

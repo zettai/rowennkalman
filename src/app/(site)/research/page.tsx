@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { getSiteContent, imageUrl, paragraphs, type Content } from "@/components/site/content";
+import { Painting } from "@/components/site/Painting";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { site } = await getSiteContent();
@@ -34,12 +34,11 @@ export default async function ResearchPage() {
       <div className="research-grid">
         {research.image && (
           <div className="research-image">
-            <Image
+            <Painting
+              image={research.image}
               src={imageUrl(research.image.key)}
-              alt={research.image.alt}
-              width={research.image.width}
-              height={research.image.height}
               sizes="(max-width: 767px) 100vw, 30vw"
+              eager
             />
           </div>
         )}

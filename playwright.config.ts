@@ -29,6 +29,17 @@ export default defineConfig({
       NEXT_TELEMETRY_DISABLED: "1",
       ROWENNKALMAN_DATA_DIR: E2E_DATA_DIR,
       ROWENNKALMAN_SESSION_SECRET: "e2e-session-secret-e2e-session-secret-0000",
+      // Next also reads .env.local, which on a developer machine holds the REAL bucket and mail keys.
+      // An empty value here wins over the file, so the tests can only ever touch .data-e2e/.
+      ROWENNKALMAN_S3_ENDPOINT: "",
+      ROWENNKALMAN_S3_REGION: "",
+      ROWENNKALMAN_S3_BUCKET: "",
+      ROWENNKALMAN_S3_ACCESS_KEY: "",
+      ROWENNKALMAN_S3_SECRET_KEY: "",
+      ROWENNKALMAN_PUBLIC_IMAGE_BASE: "",
+      ROWENNKALMAN_RESEND_API_KEY: "",
+      ROWENNKALMAN_CONTACT_TO: "",
+      ROWENNKALMAN_CONTACT_FROM: "",
       ROWENNKALMAN_ADMIN_EMAILS: E2E_EMAIL,
       ROWENNKALMAN_SITE_URL: `http://localhost:${PORT}`,
     },

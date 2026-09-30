@@ -3,6 +3,10 @@
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Artwork } from "./content";
+import { Painting } from "./Painting";
+
+// The first rows are on screen at once: load them right away, the rest as they scroll near.
+const EAGER_THUMBS = 6;
 
 type Item = Artwork & { src: string };
 
@@ -46,6 +50,11 @@ export function Gallery({ items }: { items: Item[] }) {
   }, [step]);
 
   const current = index === null ? null : items[index];
+  // Fetch the paintings either side while this one is open, so arrowing through is instant.
+  const neighbours =
+    index === null || items.length < 2
+      ? []
+      : [...new Set([(index + 1) % items.length, (index - 1 + items.length) % items.length])].map((n) => items[n]!);
 
   return (
     <>
@@ -53,11 +62,12 @@ export function Gallery({ items }: { items: Item[] }) {
         {items.map((a, i) => (
           <li key={a.id}>
             <button type="button" className="gallery-thumb" onClick={(e) => open(i, e.currentTarget)}>
-              <Image
+              <Painting
+                image={a.image}
                 src={a.src}
-                alt={a.image.alt}
-                fill
                 sizes="(max-width: 767px) 50vw, 22vw"
+                layout="fill"
+                eager={i < EAGER_THUMBS}
               />
             </button>
             {(a.title || details(a)) && (
@@ -101,6 +111,11 @@ export function Gallery({ items }: { items: Item[] }) {
                 {current.description && <p>{current.description}</p>}
               </div>
             )}
+            <div hidden aria-hidden="true">
+              {neighbours.map((n) => (
+                <Image key={n.id} src={n.src} alt="" fill loading="eager" sizes="90vw" />
+              ))}
+            </div>
             <div className="lightbox-controls">
               <button type="button" onClick={() => step(-1)} aria-label="Previous artwork">
                 ←

@@ -612,3 +612,38 @@ main:has(.portfolio) + .site-footer {
 .not-found a {
   text-underline-offset: 5px;
 }
+
+/* Paintings: blurred preview behind, the real picture fades in on top */
+
+.fi {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background-color: #f2f2f2;
+  background-size: cover;
+  background-position: center;
+}
+
+.fi-fill {
+  position: absolute;
+  inset: 0;
+}
+
+.fi-natural {
+  width: 100%;
+}
+
+.fi img {
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.fi img[data-loaded="true"] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fi img {
+    transition: none;
+  }
+}

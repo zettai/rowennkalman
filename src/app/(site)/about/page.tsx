@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { Fragment } from "react";
 import { getSiteContent, imageUrl, paragraphs } from "@/components/site/content";
+import { Painting } from "@/components/site/Painting";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { site } = await getSiteContent();
@@ -19,13 +19,7 @@ export default async function AboutPage() {
 
   const picture = (img: (typeof about.images)[number]) => (
     <figure className="about-figure" key={img.key}>
-      <Image
-        src={imageUrl(img.key)}
-        alt={img.alt}
-        width={img.width}
-        height={img.height}
-        sizes="(max-width: 767px) 100vw, 56rem"
-      />
+      <Painting image={img} src={imageUrl(img.key)} sizes="(max-width: 767px) 100vw, 56rem" />
     </figure>
   );
 

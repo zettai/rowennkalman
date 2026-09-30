@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { getSiteContent, imageUrl } from "@/components/site/content";
+import { Painting } from "@/components/site/Painting";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
@@ -22,12 +22,12 @@ export default async function HomePage() {
         </div>
         {home.heroImage && (
           <div className="feature-image">
-            <Image
+            <Painting
+              image={home.heroImage}
               src={imageUrl(home.heroImage.key)}
-              alt={home.heroImage.alt}
-              fill
-              priority
               sizes="(max-width: 767px) 100vw, 34vw"
+              layout="fill"
+              priority
             />
           </div>
         )}
@@ -39,13 +39,7 @@ export default async function HomePage() {
             {featured.map((a) => (
               <li key={a.id}>
                 <Link href="/portfolio">
-                  <Image
-                    src={imageUrl(a.image.key)}
-                    alt={a.image.alt}
-                    width={a.image.width}
-                    height={a.image.height}
-                    sizes="(max-width: 767px) 100vw, 30vw"
-                  />
+                  <Painting image={a.image} src={imageUrl(a.image.key)} sizes="(max-width: 767px) 100vw, 30vw" eager />
                 </Link>
                 {a.title && <p className="artwork-title">{a.title}</p>}
               </li>

@@ -7,6 +7,8 @@ import type { ImageRef } from "@/lib/content/schema";
 
 export const MAX_EDGE = 2800;
 export const JPEG_QUALITY = 0.85;
+/** Long edge of the blurred loading preview. */
+export const BLUR_EDGE = 20;
 const MAX_BYTES = 5 * 1024 * 1024;
 
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -62,7 +64,25 @@ function toBlob(canvas: HTMLCanvasElement, quality: number): Promise<Blob> {
   );
 }
 
-export async function prepareImage(file: File): Promise<{ blob: Blob; width: number; height: number }> {
+/** A tiny JPEG data URL of the picture, shown blurred while the real one loads (~400 bytes). */
+export function makeBlurPreview(source: CanvasImageSource, width: number, height: number): string | undefined {
+  try {
+    const scale = BLUR_EDGE / Math.max(width, height);
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(width * scale));
+    canvas.height = Math.max(1, Math.round(height * scale));
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return undefined;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
+    const url = canvas.toDataURL("image/jpeg", 0.6);
+    return url.startsWith("data:image/jpeg;base64,") && url.length < 2000 ? url : undefined;
+  } catch {
+    return undefined; // the preview is a nicety; never block an upload on it
+  }
+}
+
+export async function prepareImage(file: File): Promise<{ blob: Blob; width: number; height: number; blur?: string }> {
   const problem = fileTypeProblem(file);
   if (problem) throw new UploadError(problem);
   const decoded = await decode(file);
@@ -96,7 +116,7 @@ export async function prepareImage(file: File): Promise<{ blob: Blob; width: num
     let blob = await toBlob(canvas, JPEG_QUALITY);
     if (blob.size > MAX_BYTES) blob = await toBlob(canvas, 0.7);
     if (blob.size > MAX_BYTES) throw new UploadError("That picture is too detailed to upload. Please try a smaller one.");
-    return { blob, width: canvas.width, height: canvas.height };
+    return { blob, width: canvas.width, height: canvas.height, blur: makeBlurPreview(canvas, canvas.width, canvas.height) };
   } finally {
     decoded.close();
   }
@@ -106,7 +126,7 @@ export type UploadResult = { image: ImageRef; url: string };
 
 /** Prepares the file in the browser and uploads it. Throws UploadError with a friendly message. */
 export async function uploadImage(file: File, alt = ""): Promise<UploadResult> {
-  const { blob } = await prepareImage(file);
+  const { blob, blur } = await prepareImage(file);
   const form = new FormData();
   form.set("file", blob, "image.jpg");
   form.set("alt", alt);
@@ -119,7 +139,7 @@ export async function uploadImage(file: File, alt = ""): Promise<UploadResult> {
   if (res.status === 401) throw new UploadError("You have been signed out. Sign in again in a new tab, then try again.");
   const body = (await res.json().catch(() => ({}))) as Partial<UploadResult> & { message?: string };
   if (!res.ok || !body.image || !body.url) throw new UploadError(body.message ?? "The picture could not be uploaded. Please try again.");
-  return { image: body.image, url: body.url };
+  return { image: blur ? { ...body.image, blur } : body.image, url: body.url };
 }
 
 /** Best effort: removes an upload that will not be saved. */

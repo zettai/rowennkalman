@@ -95,3 +95,28 @@ Verified on production: all pages 200; content and photos from the bucket; image
 
 - **T: Netlify runtime: verified** (except real sign-in, below).
 - **Still open: real email.** Sign-in link and contact form through Resend on the live domain, to both addresses, including spam folders. The Resend key and the Resend-dependent settings are in Netlify's environment.
+
+### Incident: e2e ran against the production bucket (2026-09-30)
+
+After the Scaleway settings went into `.env.local`, `npx playwright test` started its server with them (Next reads `.env.local`), so the browser tests edited the **real** bucket: the home title became `Tab A <timestamp>` and the home picture was removed and its file deleted. Public pages were not affected (production only refreshes on an admin save or a deploy, and the test's saves happened on a local server), and nothing was deployed in between.
+
+Repaired the same day from the pre-S3 copy in `.data/` (title, picture file, picture reference; two leftover test uploads removed): 0 differences from the original content, 17/17 files. **Safeguard:** `playwright.config.ts` now sets every real-service variable to an empty string for the test server (an empty value beats `.env.local`), and the test that checks uploads live under `/api/dev-images/` is what caught it. Re-run: 9/9 pass and the bucket is unchanged.
+
+Rule: anything that mutates content (tests, scripts) must be pointed at a scratch store explicitly; `.env.local` on this machine is production.
+
+### Re-audit of the live site after the loading changes (2026-09-30)
+
+Read-only against production (`rowennkalman.com`) and the live bucket: no sign-in and no contact message, so nothing was emailed or changed. Result: **0 S1, 0 S2, 0 S3; 5 S4, all content Rowenn fills in or by-design choices** (artwork titles and details, descriptions equal to alt text, one corrected typo in an alt text, the hidden portfolio title).
+
+Clean:
+- **Data (live `content.json` + the 17 photos fetched over their public URLs):** all resolve to clean JPEGs with matching dimensions; **17/17 loading previews valid** (decode, ≤ 24 px, < 2 KB, average colour and proportions match their picture).
+- **Provenance:** About text, all alt texts, contact intro and the Research Spanish text match their sources.
+- **Admin ↔ public:** 56/56 editable texts visible on their pages. Painting descriptions live only in the lightbox; the crawl confirmed all 11 show there.
+- **HTTP and security (36 checks):** PDFs byte-identical to the repo, `/tesis` variants are one 301 to `/research`, pages, internal links, robots/sitemap/icons, styled 404, admin and admin API refused without a session, a made-up sign-in link refused, the dev image route off, bucket `content.json` and listing not public; git contents and history hold no keys, tokens or the allowlist address.
+- **Browser (5 pages at 1200 and 390 px):** 0 JS errors, 0 failed requests, 0 axe violations (WCAG 2.2 AA), no horizontal scroll; every picture loads and ends fully visible; pictures stay visible with JavaScript off; reduced motion turns the fade off; lightbox opens, steps through all 11 with the right description, preloads neighbours, closes on Escape and returns focus.
+
+Measured, informational (this machine and network): largest paint 0.5–3.7 s depending on the page (Home 2.5 s / About 3.7 s at 1200 px). These pages are still dominated by the on-demand resize of the first view on each edge server (see the loading-speed options in the conversation: Option C, smaller versions created at upload, is the remaining lever).
+
+Harness bugs found: the text-on-page check matched Next's embedded page data inside `<script>` tags (fixed: it now ignores scripts); the redirect check wanted an absolute URL; the bucket check wanted 403 where 404 is equally private.
+
+Still open, needs a human: real email deliverability (the sign-in link landed in Gmail spam; mark it "not spam", and Rowenn should expect the same); Rowenn reviewing the English Research text and the search description; what small edit was made in the admin before the test incident (not visible in the stored content).
