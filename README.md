@@ -23,6 +23,9 @@ content and photos in a Scaleway bucket; Rowenn edits everything at `/admin` (em
   (the local store in `.data/` is then used). Names of all settings: `.env.example`.
 - Secrets live in Netlify (production) and the macOS Keychain (`rowennkalman-netlify-token`,
   `rowennkalman-sonar-token`, `rowennkalman-cloudflare-token`), never in the repo.
+- The Netlify account holds only this site (cleaned up 2026-10-02: six old projects and an
+  unused OAuth grant removed). Two-factor auth is on; one personal access token
+  (`claude-rowennkalman-debug`, expires 2026-12-28) and one DNS zone, `rowennkalman.com`.
 - Pictures are served in pre-made sizes through a Cloudflare Worker (`img.tomas-tello.stream`);
   `ROWENNKALMAN_IMAGE_CDN_URL` is the off switch. Everything about it: `docs/IMAGES.md`.
 - Public pages are cached by Netlify for an hour and purged on every admin save; each page's

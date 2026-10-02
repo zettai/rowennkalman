@@ -637,6 +637,12 @@ html:has(dialog.lightbox[open]) {
   text-underline-offset: 5px;
 }
 
+.footer-copyright {
+  font-size: var(--text-small);
+  margin: 2rem 0 0;
+  text-wrap: balance;
+}
+
 /* 404 */
 
 .not-found {

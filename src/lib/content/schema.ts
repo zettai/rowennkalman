@@ -60,6 +60,8 @@ export const ContentSchema = z.object({
     footer: z.object({
       followLabel: z.string().max(100),
       followUrl: z.string().max(2000),
+      // Content saved before this field existed loads with the default.
+      copyright: z.string().max(200).default("Rowenn Beth Kalman"),
     }),
   }),
   home: z.object({

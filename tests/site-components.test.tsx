@@ -4,6 +4,12 @@ import userEvent from "@testing-library/user-event";
 import { Painting } from "@/components/site/Painting";
 import { Gallery } from "@/components/site/Gallery";
 import { ContactForm } from "@/components/site/ContactForm";
+import { Footer } from "@/components/site/Footer";
+import seed from "@content/seed.json";
+import { ContentSchema } from "@/lib/content/schema";
+
+// Footer reaches the content store through ./content; the S3 client isn't needed (or loadable) here.
+jest.mock("@/lib/store", () => ({ getStore: jest.fn() }));
 
 // jsdom has no <dialog> behaviour: open/close like a browser does, including the close event.
 beforeAll(() => {
@@ -167,5 +173,30 @@ describe("Painting with pre-made sizes", () => {
     expect(img).toHaveAttribute("sizes", "50vw");
     expect(img.getAttribute("src")).toBe("https://img.test/art/5-640.webp");
     expect(img).toHaveAttribute("data-loaded", "false");
+  });
+});
+
+describe("Footer", () => {
+  const site = ContentSchema.parse(seed).site;
+  afterEach(() => jest.useRealTimers());
+
+  it("shows the copyright line with the current year", () => {
+    jest.useFakeTimers().setSystemTime(new Date("2031-06-01T12:00:00Z"));
+    render(<Footer site={site} />);
+    expect(screen.getByText("© 2031 Rowenn Beth Kalman. All rights reserved.")).toBeInTheDocument();
+  });
+
+  it("hides the line when the holder is cleared or only spaces", () => {
+    for (const copyright of ["", "   "]) {
+      const { container, unmount } = render(<Footer site={{ ...site, footer: { ...site.footer, copyright } }} />);
+      expect(container.querySelector(".footer-copyright")).toBeNull();
+      unmount();
+    }
+  });
+
+  it("ignores stray spaces and a final full stop typed in the holder", () => {
+    jest.useFakeTimers().setSystemTime(new Date("2031-06-01T12:00:00Z"));
+    render(<Footer site={{ ...site, footer: { ...site.footer, copyright: "  Rowenn Beth Kalman.. " } }} />);
+    expect(screen.getByText("© 2031 Rowenn Beth Kalman. All rights reserved.")).toBeInTheDocument();
   });
 });

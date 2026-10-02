@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { navItems, type Content } from "./content";
+import { copyrightHolder } from "./seo";
 
 export function Footer({ site }: Readonly<{ site: Content["site"] }>) {
+  const holder = copyrightHolder(site);
   return (
     <footer className="site-footer">
       <p className="footer-title">{site.name}</p>
@@ -21,6 +23,7 @@ export function Footer({ site }: Readonly<{ site: Content["site"] }>) {
           )}
         </ul>
       </nav>
+      {holder && <p className="footer-copyright">© {new Date().getFullYear()} {holder}. All rights reserved.</p>}
     </footer>
   );
 }

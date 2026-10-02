@@ -340,7 +340,7 @@ export const PAGES: PageDef[] = [
       {
         id: "footer",
         title: "Footer",
-        hint: "The bottom of every page repeats the menu words; the follow link is set here.",
+        hint: "The bottom of every page repeats the menu words, the follow link and the copyright line.",
         fields: [
           { kind: "text", path: "site.footer.followLabel", label: "Follow link words", hint: "For example: Follow on Instagram." },
           {
@@ -348,6 +348,12 @@ export const PAGES: PageDef[] = [
             path: "site.footer.followUrl",
             label: "Follow link address",
             hint: "The full web address the follow link opens, starting with https://",
+          },
+          {
+            kind: "text",
+            path: "site.footer.copyright",
+            label: "Copyright holder",
+            hint: "Shown as: © <this year> Rowenn Beth Kalman. All rights reserved. The year updates itself; leave empty to hide the line.",
           },
         ],
       },

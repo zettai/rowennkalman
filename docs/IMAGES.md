@@ -52,7 +52,7 @@ Netlify's image CDN (`/_next/image`). Nothing breaks; it is just slower.
 |---|---|---|
 | `ROWENNKALMAN_IMAGE_CDN_URL` | Netlify env, production context, **not secret** | `https://img.tomas-tello.stream`. **The off switch**: unset it (and redeploy) and every picture goes back to the old way. |
 | Cloudflare API token | macOS Keychain, item `rowennkalman-cloudflare-token` | Used by `scripts/cloudflare.sh`. **Expires 2027-09-30.** Scopes (nothing else, so it cannot touch the tunnel, Access or DNS): Account → Workers Scripts → Edit; Zone → Workers Routes → Edit; Zone → Cache Purge → Purge; Zone → Zone → Read. Zone resources: only `tomas-tello.stream`. No IP filter (home IP changes). |
-| Netlify token | Keychain, `rowennkalman-netlify-token` | `scripts/netlify.sh` (logs, purge of cached pages). Expires ~2026-12-29. |
+| Netlify token | Keychain, `rowennkalman-netlify-token` | `scripts/netlify.sh` (logs, purge of cached pages). Shown in Netlify as `claude-rowennkalman-debug`. **Expires 2026-12-28** (Netlify's date). |
 | Bucket keys | Netlify env + `.env.local` on Luis's Mac (**production**) | The upload function and the scripts. |
 | Worker config | `cloudflare/image-worker/wrangler.toml` | account id, `ORIGIN` (the bucket URL), the custom domain. Not secret. |
 

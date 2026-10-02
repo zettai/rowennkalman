@@ -4,6 +4,11 @@ import type { Content, ImageRef } from "@/lib/content/schema";
 import { paragraphs } from "@/lib/content/schema";
 import { trimEndChars } from "@/lib/text";
 
+/** The copyright holder as typed in the admin, without surrounding spaces or a final full stop; "" hides the notice. */
+export function copyrightHolder(site: Content["site"]): string {
+  return trimEndChars(site.footer.copyright.trim(), ".").trim();
+}
+
 /** The start of the text (as many paragraphs as fit), cut on a word boundary to fit a search snippet. */
 export function excerpt(text: string, max = 155): string {
   const all = paragraphs(text).map((p) => p.replace(/\s+/g, " ").trim()).join(" ");
@@ -87,7 +92,7 @@ function imageObject(ref: ImageRef, url: string, content: Content, base: URL): J
     caption: ref.alt || undefined,
     creator: { "@id": personId(base) },
     creditText: content.site.name,
-    copyrightNotice: `© ${content.site.name}`,
+    copyrightNotice: `© ${copyrightHolder(content.site) || content.site.name}`,
   };
 }
 

@@ -24,6 +24,11 @@ describe("search descriptions", () => {
     delete old.about.seoDescription;
     expect(ContentSchema.parse(old).about.seoDescription).toBe("");
   });
+  it("gives content saved before the copyright field existed her name as the holder", () => {
+    const old = JSON.parse(JSON.stringify(seed));
+    delete old.site.footer.copyright;
+    expect(ContentSchema.parse(old).site.footer.copyright).toBe("Rowenn Beth Kalman");
+  });
 });
 
 describe("structured data", () => {
@@ -31,6 +36,18 @@ describe("structured data", () => {
     const p = personJsonLd(content, base, img);
     expect(p).toMatchObject({ "@type": "Person", name: content.site.name, url: "https://example.org/" });
     expect(p.sameAs).toEqual([content.site.footer.followUrl]);
+  });
+  it("puts the copyright holder, not the site name, on every image", () => {
+    const withHolder = { ...content, site: { ...content.site, name: "Studio", footer: { ...content.site.footer, copyright: "Rowenn Beth Kalman" } } };
+    const graph = JSON.parse(jsonLdGraph([artworksJsonLd(withHolder, base, img)]));
+    const first = graph["@graph"][0].mainEntity.itemListElement[0].item;
+    expect(first.image.copyrightNotice).toBe("© Rowenn Beth Kalman");
+    const typed = { ...withHolder, site: { ...withHolder.site, footer: { ...withHolder.site.footer, copyright: " Rowenn Beth Kalman. " } } };
+    const g1 = JSON.parse(jsonLdGraph([artworksJsonLd(typed, base, img)]));
+    expect(g1["@graph"][0].mainEntity.itemListElement[0].item.image.copyrightNotice).toBe("© Rowenn Beth Kalman");
+    const blank = { ...withHolder, site: { ...withHolder.site, footer: { ...withHolder.site.footer, copyright: " . " } } };
+    const g2 = JSON.parse(jsonLdGraph([artworksJsonLd(blank, base, img)]));
+    expect(g2["@graph"][0].mainEntity.itemListElement[0].item.image.copyrightNotice).toBe("© Studio");
   });
   it("lists every painting as a VisualArtwork with its image, and leaves out empty fields", () => {
     const graph = JSON.parse(jsonLdGraph([artworksJsonLd(content, base, img)]));
