@@ -31,7 +31,8 @@ export async function login(page: Page, next = "/admin") {
   await page.goto(cachedLink!);
   await expect(page).toHaveURL(/\/admin$/);
   if (next !== "/admin") await page.goto(next);
-  await expect(page).toHaveURL(new RegExp(`${next.replace(/[/]/g, "\\/")}$`));
+  // Test-only helper: `next` is a test-controlled literal path, already slash-escaped.
+  await expect(page).toHaveURL(new RegExp(`${next.replace(/[/]/g, "\\/")}$`)); // nosemgrep
 }
 
 /** A real JPEG with an EXIF (APP1) segment, like a phone photo. The browser must strip it. */
