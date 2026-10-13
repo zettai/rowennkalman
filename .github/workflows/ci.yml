@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Lint, typecheck, test, a11y
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install
+        run: npm ci
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+
+      - name: Blank production service env
+        # Same list as Playwright / a11y-pages (scripts/blank-prod-env.ts).
+        run: npx tsx scripts/blank-prod-env.ts github >> "$GITHUB_ENV"
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Page accessibility (pa11y-ci)
+        run: npm run a11y:pages

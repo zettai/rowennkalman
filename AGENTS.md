@@ -23,7 +23,8 @@ Contact form and sign-in mail go through Resend. Jest 29 + Playwright. Public Gi
      `_S3_SECRET_KEY`, `_PUBLIC_IMAGE_BASE`, `_IMAGE_CDN_URL`, `_GOATCOUNTER_URL`,
      `_GOATCOUNTER_API_KEY`, `_CF_ACCESS_CLIENT_ID`, `_CF_ACCESS_CLIENT_SECRET`,
      `_RESEND_API_KEY`, `_CONTACT_TO`, `_CONTACT_FROM`. `playwright.config.ts` already does this
-     and uses `ROWENNKALMAN_DATA_DIR=.data-e2e`; copy that list for any new test setup.
+     and uses `ROWENNKALMAN_DATA_DIR=.data-e2e`; the shared blank list lives in
+     `scripts/blank-prod-env.ts` (also used by `npm run a11y:pages` and CI).
    - For plain local work, blank the `ROWENNKALMAN_S3_*` variables and the app uses the local
      file store in `.data/`. Keep `.data/` as the last-known-good content backup.
    - `npm run image-sizes` and `npm run upload-failures` read `.env.local` on purpose and so hit
@@ -43,7 +44,8 @@ Contact form and sign-in mail go through Resend. Jest 29 + Playwright. Public Gi
 
 ```bash
 npm run dev                     # dev server (reads .env.local: see above)
-npm test                        # Jest unit tests (tests/)
+npm test                        # Jest unit tests (tests/), including jest-axe
+npm run a11y:pages              # pa11y-ci against a local production build (FileStore only)
 npm run lint                    # ESLint, zero warnings allowed
 npm run typecheck               # tsc --noEmit
 npx playwright test e2e/admin.spec.ts   # browser tests on a scratch store, never the bucket

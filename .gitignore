@@ -10,6 +10,7 @@ assets/
 *.tsbuildinfo
 next-env.d.ts
 .data-e2e/
+.data-a11y/
 test-results/
 playwright-report/
 coverage/

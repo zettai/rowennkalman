@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import { blankProdEnv } from "./scripts/blank-prod-env";
 
 /**
  * E2E runs against a production build (`next build && next start`) with a
@@ -30,21 +31,8 @@ export default defineConfig({
       ROWENNKALMAN_DATA_DIR: E2E_DATA_DIR,
       ROWENNKALMAN_SESSION_SECRET: "e2e-session-secret-e2e-session-secret-0000",
       // Next also reads .env.local, which on a developer machine holds the REAL bucket and mail keys.
-      // An empty value here wins over the file, so the tests can only ever touch .data-e2e/.
-      ROWENNKALMAN_S3_ENDPOINT: "",
-      ROWENNKALMAN_S3_REGION: "",
-      ROWENNKALMAN_S3_BUCKET: "",
-      ROWENNKALMAN_S3_ACCESS_KEY: "",
-      ROWENNKALMAN_S3_SECRET_KEY: "",
-      ROWENNKALMAN_PUBLIC_IMAGE_BASE: "",
-      ROWENNKALMAN_IMAGE_CDN_URL: "",
-      ROWENNKALMAN_GOATCOUNTER_URL: "",
-      ROWENNKALMAN_GOATCOUNTER_API_KEY: "",
-      ROWENNKALMAN_CF_ACCESS_CLIENT_ID: "",
-      ROWENNKALMAN_CF_ACCESS_CLIENT_SECRET: "",
-      ROWENNKALMAN_RESEND_API_KEY: "",
-      ROWENNKALMAN_CONTACT_TO: "",
-      ROWENNKALMAN_CONTACT_FROM: "",
+      // Empty values from blankProdEnv win over the file, so the tests can only ever touch .data-e2e/.
+      ...blankProdEnv,
       ROWENNKALMAN_ADMIN_EMAILS: E2E_EMAIL,
       ROWENNKALMAN_SITE_URL: `http://localhost:${PORT}`,
     },

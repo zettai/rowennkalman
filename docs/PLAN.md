@@ -6,9 +6,10 @@ Live on rowennkalman.com: public site (Home, About, Portfolio, Research, Contact
 with email sign-in (Rowenn + Luis), content and photos in the Scaleway bucket, email via Resend
 (`rowennkalman.com` verified; the first sign-in mail landed in Gmail spam, marked "not spam").
 Every push to `master` builds a deploy; publishing it is a separate step (auto-publishing locked since 2026-10-27).
-Stack is Next.js 16 (App Router; admin auth gate is `src/proxy.ts`). Checks: `npm test`,
+Stack is Next.js 16 (App Router; admin auth gate is `src/proxy.ts`). Checks: `npm test` (unit,
+including jest-axe), `npm run a11y:pages` (pa11y-ci on a local production build / FileStore),
 `npx playwright test e2e/admin.spec.ts` (e2e, local store only), `npm run sonar` (on demand).
-Audits and incidents: `docs/AUDIT.md`.
+GitHub Actions: Opengrep SAST plus CI (lint/typecheck/test/a11y). Audits and incidents: `docs/AUDIT.md`.
 Open for Rowenn: painting titles/details/descriptions, review of the English Research text.
 The sections below keep the original plan and decisions for reference.
 
@@ -108,7 +109,7 @@ The cloud agent builds the schema from `requests/rowennkalman-admin.md`; local r
 - Bucket versioning (undo bad saves / deletes).
 - Weekly rclone backup of the bucket to max-z.
 - Cloudflare Turnstile on the contact form, only if spam gets through.
-- Quality gate: CI/CD, probably reusing next-tt's SonarQube setup as a pre-push hook.
+- Broader CI/CD quality gate (SonarQube pre-push); unit/a11y gates already run in GitHub Actions.
 - New page types beyond the fixed five.
 - **Investigate why Netlify's Image CDN never serves from cache** (added 2026-09-30). The same
   `/_next/image?...&w=640` URL fetched 4 times in a row answered `cache-status: "Netlify Edge";

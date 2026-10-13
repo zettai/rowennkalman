@@ -11,7 +11,8 @@ export function Header({ site }: Readonly<{ site: Content["site"] }>) {
       </Link>
       <details className="menu">
         <summary aria-label="Menu">Menu</summary>
-        <nav aria-label="Main">
+        {/* Separate accessible name from the wide nav so landmarks stay unique when open. */}
+        <nav aria-label="Mobile">
           <NavLinks items={items} />
         </nav>
       </details>

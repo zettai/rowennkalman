@@ -1,0 +1,17 @@
+{
+  "defaults": {
+    "standard": "WCAG2AA",
+    "runners": ["axe"],
+    "timeout": 60000,
+    "chromeLaunchConfig": {
+      "args": ["--no-sandbox", "--disable-dev-shm-usage"]
+    }
+  },
+  "urls": [
+    "http://localhost:3300/",
+    "http://localhost:3300/portfolio",
+    "http://localhost:3300/about",
+    "http://localhost:3300/research",
+    "http://localhost:3300/contact"
+  ]
+}
