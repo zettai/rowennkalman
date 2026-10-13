@@ -6,7 +6,7 @@ import { SESSION_COOKIE, verifySession, sessionSecret, AuthConfigError } from "@
  * Pages redirect to the login screen; API routes answer 401 JSON.
  * Admin pages and API routes check the session again themselves.
  */
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
   const isApi = pathname.startsWith("/api/admin");
   if (pathname === "/admin/login") return NextResponse.next();

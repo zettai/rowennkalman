@@ -9,7 +9,7 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-# The site was created in 2019 and Netlify defaulted it to Node 10. Next.js 15 needs 20+.
+# The site was created in 2019 and Netlify defaulted it to Node 10. Next.js 16 needs 20+.
 [build.environment]
   NODE_VERSION = "22"
 

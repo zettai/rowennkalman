@@ -11,14 +11,10 @@ const VERSION_TAG = /<meta name="content-version" content="([^"]+)"/;
  * tag), so the admin only says "live" when a visitor would really see the change.
  */
 export function useLiveCheck(publicPath: string, version: string | undefined, timeoutMs = 20_000): LiveState | null {
-  const [state, setState] = useState<LiveState | null>(null);
+  const [outcome, setOutcome] = useState<{ version: string; state: "live" | "slow" } | null>(null);
   useEffect(() => {
-    if (!version) {
-      setState(null);
-      return;
-    }
+    if (!version) return;
     let stopped = false;
-    setState("checking");
     const deadline = Date.now() + timeoutMs;
     (async () => {
       while (!stopped && Date.now() < deadline) {
@@ -27,7 +23,7 @@ export function useLiveCheck(publicPath: string, version: string | undefined, ti
           const html = typeof res.text === "function" ? await res.text() : "";
           const shown = VERSION_TAG.exec(html)?.[1];
           if (shown && shown >= version) {
-            if (!stopped) setState("live");
+            if (!stopped) setOutcome({ version, state: "live" });
             console.info(JSON.stringify({ event: "live-check", path: publicPath, version, shown, result: "live" }));
             return;
           }
@@ -37,7 +33,7 @@ export function useLiveCheck(publicPath: string, version: string | undefined, ti
         await new Promise((r) => setTimeout(r, 1500));
       }
       if (!stopped) {
-        setState("slow");
+        setOutcome({ version, state: "slow" });
         console.warn(JSON.stringify({ event: "live-check", path: publicPath, version, result: "slow" }));
       }
     })();
@@ -45,5 +41,7 @@ export function useLiveCheck(publicPath: string, version: string | undefined, ti
       stopped = true;
     };
   }, [publicPath, version, timeoutMs]);
-  return state;
+  if (!version) return null;
+  if (outcome?.version === version) return outcome.state;
+  return "checking";
 }

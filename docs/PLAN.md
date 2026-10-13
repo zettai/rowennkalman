@@ -5,8 +5,10 @@
 Live on rowennkalman.com: public site (Home, About, Portfolio, Research, Contact), the admin at `/admin`
 with email sign-in (Rowenn + Luis), content and photos in the Scaleway bucket, email via Resend
 (`rowennkalman.com` verified; the first sign-in mail landed in Gmail spam, marked "not spam").
-Every push to `master` builds a deploy; publishing it is a separate step (auto-publishing locked since 2026-10-27). Checks: `npm test` (136 unit), `npx playwright test e2e/admin.spec.ts`
-(9 e2e, local store only), `npm run sonar` (gate OK, 0 issues). Audits and incidents: `docs/AUDIT.md`.
+Every push to `master` builds a deploy; publishing it is a separate step (auto-publishing locked since 2026-10-27).
+Stack is Next.js 16 (App Router; admin auth gate is `src/proxy.ts`). Checks: `npm test`,
+`npx playwright test e2e/admin.spec.ts` (e2e, local store only), `npm run sonar` (on demand).
+Audits and incidents: `docs/AUDIT.md`.
 Open for Rowenn: painting titles/details/descriptions, review of the English Research text.
 The sections below keep the original plan and decisions for reference.
 

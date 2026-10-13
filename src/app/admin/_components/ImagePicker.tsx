@@ -29,21 +29,21 @@ type Failure = { message: string; step: UploadStep; id?: string };
 export function ImagePicker({ label, onUploaded, onBusyChange, secondary, testId }: Readonly<Props>) {
   const id = useId();
   const input = useRef<HTMLInputElement>(null);
-  const lastFile = useRef<File | null>(null);
+  const [lastFile, setLastFile] = useState<File | null>(null);
   const [progress, setProgress] = useState<UploadProgress | null>(null);
   const [failure, setFailure] = useState<Failure | null>(null);
   const busy = progress !== null && progress.step !== "done";
 
   const start = async (file: File | undefined) => {
     if (!file) return;
-    lastFile.current = file;
+    setLastFile(file);
     setFailure(null);
     setProgress({ step: "prepare" });
     onBusyChange?.(true);
     try {
       onUploaded(await uploadImage(file, "", { onProgress: setProgress }));
       setProgress(null);
-      lastFile.current = null;
+      setLastFile(null);
     } catch (err) {
       const e = err instanceof UploadError ? err : new UploadError("The picture could not be uploaded. Please try again.");
       setFailure({ message: e.message, step: e.step, id: e.id });
@@ -107,8 +107,8 @@ export function ImagePicker({ label, onUploaded, onBusyChange, secondary, testId
             <div role="alert">
               <p className={s.fieldError}>{failure.message}</p>
               {failure.id && <p className={s.uploadRef}>Reference: {failure.id}</p>}
-              {lastFile.current && (
-                <button type="button" className={s.buttonSecondary} onClick={() => void start(lastFile.current ?? undefined)}>
+              {lastFile && (
+                <button type="button" className={s.buttonSecondary} onClick={() => void start(lastFile)}>
                   Try again
                 </button>
               )}

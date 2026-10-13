@@ -8,7 +8,7 @@ export async function getSession(): Promise<Session | null> {
   return verifySession(token);
 }
 
-/** For admin pages: redirect to the login screen without a session (middleware does this too). */
+/** For admin pages: redirect to the login screen without a session (proxy does this too). */
 export async function requireSession(): Promise<Session> {
   const session = await getSession();
   if (!session) redirect("/admin/login");

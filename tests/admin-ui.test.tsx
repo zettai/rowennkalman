@@ -22,9 +22,21 @@ const urls = { "art/seed-hero.jpg": "/x/hero.jpg" } as Record<string, string>;
 
 function mockSave(status: number, body: unknown) {
   const calls: Record<string, unknown>[] = [];
-  globalThis.fetch = jest.fn(async (_url: string, init: RequestInit) => {
-    calls.push(JSON.parse(init.body as string));
-    return { ok: status < 300, status, json: async () => body } as Response;
+  const version =
+    body && typeof body === "object" && body !== null && "content" in body
+      ? String((body as { content?: { updatedAt?: string } }).content?.updatedAt ?? "")
+      : "";
+  globalThis.fetch = jest.fn(async (_url: string, init?: RequestInit) => {
+    if (init?.body) {
+      calls.push(JSON.parse(init.body as string));
+      return { ok: status < 300, status, json: async () => body } as Response;
+    }
+    // useLiveCheck loads the public page and reads <meta name="content-version">.
+    return {
+      ok: true,
+      status: 200,
+      text: async () => `<meta name="content-version" content="${version}">`,
+    } as Response;
   }) as unknown as typeof fetch;
   return calls;
 }

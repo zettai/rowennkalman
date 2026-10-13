@@ -8,7 +8,8 @@ import { useEffect, useState } from "react";
  * comes back into view and every minute while it is visible. Returns the newer version, or null.
  */
 export function useStaleCheck(loadedVersion: string, intervalMs = 60_000): string | null {
-  const [newer, setNewer] = useState<string | null>(null);
+  // Tied to loadedVersion so a save on this page clears the warning without a separate effect.
+  const [stale, setStale] = useState<{ forVersion: string; newer: string } | null>(null);
   useEffect(() => {
     let stopped = false;
     const check = async () => {
@@ -18,7 +19,9 @@ export function useStaleCheck(loadedVersion: string, intervalMs = 60_000): strin
         if (!res.ok) return;
         const body = (await res.json()) as { content?: { updatedAt?: string } };
         const current = body.content?.updatedAt;
-        if (!stopped && current && current !== loadedVersion) setNewer(current);
+        if (!stopped && current && current !== loadedVersion) {
+          setStale({ forVersion: loadedVersion, newer: current });
+        }
       } catch {
         // offline for a moment: try again on the next check
       }
@@ -34,7 +37,5 @@ export function useStaleCheck(loadedVersion: string, intervalMs = 60_000): strin
       globalThis.clearInterval(timer);
     };
   }, [loadedVersion, intervalMs]);
-  // A save from this page moves loadedVersion forward, which clears the warning.
-  useEffect(() => setNewer(null), [loadedVersion]);
-  return newer;
+  return stale && stale.forVersion === loadedVersion ? stale.newer : null;
 }

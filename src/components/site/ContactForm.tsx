@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Content } from "./content";
 
 type Labels = Content["contact"]["form"];
@@ -8,8 +8,11 @@ type Status = "idle" | "sending" | "sent" | "error";
 
 // Posts the contract shape from the admin request: { name, email, message, website, startedAt }.
 export function ContactForm({ labels }: Readonly<{ labels: Labels }>) {
-  const startedAt = useRef(Date.now());
+  const startedAt = useRef(0);
   const [status, setStatus] = useState<Status>("idle");
+  useEffect(() => {
+    startedAt.current = Date.now();
+  }, []);
 
   async function onSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();

@@ -2,10 +2,10 @@ import { SignJWT, jwtVerify, errors } from "jose";
 
 /**
  * Session issue/verify, the only place that knows what a session is.
- * Edge-safe (jose only), so middleware.ts can use it.
+ * Edge-safe (jose only), so proxy.ts can use it.
  *
  * Sessions come from the email magic link (magic-link.ts), which proves the
- * address and then calls issueSession({ method: "magic-link" }); middleware,
+ * address and then calls issueSession({ method: "magic-link" }); proxy,
  * pages and API routes call verifySession.
  */
 

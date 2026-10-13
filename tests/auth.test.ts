@@ -12,7 +12,7 @@ import {
   type LinkMailer,
 } from "@/lib/auth/magic-link";
 import { createRateLimiter } from "@/lib/rate-limit";
-import { middleware } from "@/middleware";
+import { proxy } from "@/proxy";
 
 const SECRET = "test-secret-test-secret-test-secret-0123456789";
 const secret = new TextEncoder().encode(SECRET);
@@ -162,7 +162,7 @@ describe("post-login destination", () => {
   });
 });
 
-describe("middleware", () => {
+describe("proxy", () => {
   const req = (path: string, init: { cookie?: string; method?: string; origin?: string } = {}) => {
     const headers = new Headers({ host: "localhost:3000" });
     if (init.cookie) headers.set("cookie", `${SESSION_COOKIE}=${init.cookie}`);
@@ -171,32 +171,32 @@ describe("middleware", () => {
   };
 
   it("redirects admin pages to login without a session", async () => {
-    const res = await middleware(req("/admin/home"));
+    const res = await proxy(req("/admin/home"));
     expect(res.status).toBe(307);
     expect(res.headers.get("location")).toBe("http://localhost:3000/admin/login?next=%2Fadmin%2Fhome");
   });
   it("lets the login page through", async () => {
-    const res = await middleware(req("/admin/login"));
+    const res = await proxy(req("/admin/login"));
     expect(res.headers.get("x-middleware-next")).toBe("1");
   });
   it("answers 401 for admin API without a session, or with a forged/expired one", async () => {
-    expect((await middleware(req("/api/admin/content"))).status).toBe(401);
+    expect((await proxy(req("/api/admin/content"))).status).toBe(401);
     const { token: forged } = await issueSession({ method: "magic-link" }, new TextEncoder().encode("y".repeat(40)));
-    expect((await middleware(req("/api/admin/content", { cookie: forged }))).status).toBe(401);
+    expect((await proxy(req("/api/admin/content", { cookie: forged }))).status).toBe(401);
     const { token: old } = await issueSession({ method: "magic-link" }, secret, Math.floor(Date.now() / 1000) - 8 * 86400);
-    expect((await middleware(req("/api/admin/content", { cookie: old }))).status).toBe(401);
+    expect((await proxy(req("/api/admin/content", { cookie: old }))).status).toBe(401);
   });
   it("passes a valid session", async () => {
     const { token } = await issueSession({ method: "magic-link" }, secret);
-    const res = await middleware(req("/admin/home", { cookie: token }));
+    const res = await proxy(req("/admin/home", { cookie: token }));
     expect(res.headers.get("x-middleware-next")).toBe("1");
     expect(res.headers.get("cache-control")).toBe("no-store");
   });
   it("blocks cross-origin writes to the admin API", async () => {
     const { token } = await issueSession({ method: "magic-link" }, secret);
-    const res = await middleware(req("/api/admin/content", { cookie: token, method: "PUT", origin: "https://evil.example" }));
+    const res = await proxy(req("/api/admin/content", { cookie: token, method: "PUT", origin: "https://evil.example" }));
     expect(res.status).toBe(403);
-    const ok = await middleware(req("/api/admin/content", { cookie: token, method: "PUT", origin: "http://localhost:3000" }));
+    const ok = await proxy(req("/api/admin/content", { cookie: token, method: "PUT", origin: "http://localhost:3000" }));
     expect(ok.headers.get("x-middleware-next")).toBe("1");
   });
 });
