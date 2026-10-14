@@ -28,7 +28,7 @@ export default async function AboutPage() {
 
   const picture = (img: (typeof about.images)[number]) => (
     <figure className="about-figure" key={img.key}>
-      <Painting image={img} {...pictureSrc(img)} sizes="(max-width: 767px) 100vw, 56rem" />
+      <Painting image={img} {...pictureSrc(img)} sizes="(max-width: 767px) 80vw, 37rem" />
     </figure>
   );
 

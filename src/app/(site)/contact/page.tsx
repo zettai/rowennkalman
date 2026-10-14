@@ -21,26 +21,27 @@ export default async function ContactPage() {
   const { contact } = await getSiteContent();
   return (
     <section className="page contact">
-      <div className="contact-text">
-        <h1 className="display">{contact.title}</h1>
-        <div className="prose">
-          {paragraphs(contact.intro).map((p) => (
-            <p key={p}>{p}</p>
-          ))}
+      <h1 className="display page-title">{contact.title}</h1>
+      <div className="research-grid contact-grid">
+        {contact.image && (
+          <div className="research-image">
+            <Painting
+              image={contact.image}
+              {...pictureSrc(contact.image)}
+              sizes="(max-width: 767px) 100vw, 30vw"
+              priority
+            />
+          </div>
+        )}
+        <div className="contact-text">
+          <div className="prose">
+            {paragraphs(contact.intro).map((p) => (
+              <p key={p}>{p}</p>
+            ))}
+          </div>
+          <ContactForm labels={contact.form} />
         </div>
-        <ContactForm labels={contact.form} />
       </div>
-      {contact.image && (
-        <div className="feature-image">
-          <Painting
-            image={contact.image}
-            {...pictureSrc(contact.image)}
-            sizes="(max-width: 767px) 100vw, 34vw"
-            layout="fill"
-            priority
-          />
-        </div>
-      )}
     </section>
   );
 }

@@ -174,9 +174,9 @@ body:has(.home-hero) .site-header {
   background: transparent;
 }
 
-/* The main picture on Home and Contact shares one frame (size, shape, position),
-   so it stays put when moving between the two pages. Like a painting hung on a
-   wall beside its label: narrower than half the page, right edge on the margin. */
+/* The main picture on Home. Like a painting hung on a wall beside its label:
+   narrower than half the page, right edge on the margin. (Contact uses the
+   Research layout instead, since 2026-10-14.) */
 .feature-image {
   position: relative;
   justify-self: end;
@@ -186,6 +186,11 @@ body:has(.home-hero) .site-header {
 
 .feature-image img {
   object-fit: cover;
+}
+
+/* The mushroom sits left of the painting's centre; shift the crop so it is centred. */
+.home-hero .feature-image img {
+  object-position: 40% 50%;
 }
 
 @media (max-width: 767px) {
@@ -284,19 +289,16 @@ body:has(.home-hero) .site-header {
   margin: 0 0 1em;
 }
 
+/* Pictures are always 20% narrower than the text column around them. */
 .about-figure {
-  margin: clamp(2rem, 4vw, 3.5rem) -5rem;
+  width: 80%;
+  margin: clamp(2rem, 4vw, 3.5rem) auto;
 }
 
 .about-figure img {
   width: 100%;
 }
 
-@media (max-width: 1023px) {
-  .about-figure {
-    margin-inline: 0;
-  }
-}
 
 /* Portfolio */
 
@@ -522,23 +524,9 @@ html:has(dialog.lightbox[open]) {
 
 /* Contact */
 
-.page.contact {
-  padding-top: var(--feature-top);
-}
-
-.contact {
-  display: grid;
-  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-  gap: var(--gutter);
-  align-items: start;
-}
-
-.contact-text {
-  max-width: 26rem;
-}
-
+/* Same frame as Research: picture left, text right, centred as a block. */
 .contact-text .prose {
-  margin: 1.5rem 0 2.5rem;
+  margin: 0 0 2.5rem;
 }
 
 .contact-form {
