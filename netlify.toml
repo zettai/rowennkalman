@@ -13,6 +13,15 @@
 [build.environment]
   NODE_VERSION = "22"
 
+# Legacy thesis subdomain (decided 2026-10-15, option B in LLNZ docs/domains-cloudflare-migration.md):
+# every path on tesis.rowennkalman.com lands on /research, where the thesis PDFs are linked.
+# Takes effect once `tesis` is a domain alias of this Netlify site (or DNS points it here).
+[[redirects]]
+  from = "https://tesis.rowennkalman.com/*"
+  to = "https://rowennkalman.com/research"
+  status = 301
+  force = true
+
 # Old thesis landing page: one permanent hop to /research. The PDFs under /tesis/*.pdf are
 # real files and are not matched (no splat). Netlify treats /tesis and /tesis/ the same.
 [[redirects]]
