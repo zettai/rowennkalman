@@ -28,7 +28,47 @@ jobs:
 
       - name: Blank production service env
         # Same list as Playwright / a11y-pages (scripts/blank-prod-env.ts).
-        run: npx tsx scripts/blank-prod-env.ts github >> "$GITHUB_ENV"
+        run: |
+          set -euo pipefail
+          BLANK_ENV="$(npx tsx scripts/blank-prod-env.ts github)" || {
+            echo "ci: blank-prod-env failed" >&2
+            exit 1
+          }
+          if [[ -z "$BLANK_ENV" ]]; then
+            echo "ci: blank-prod-env produced empty GITHUB_ENV lines; refusing to continue" >&2
+            exit 1
+          fi
+          printf '%s\n' "$BLANK_ENV" >> "$GITHUB_ENV"
+
+      - name: Assert blank production env
+        run: |
+          set -euo pipefail
+          BLANK_KEYS=(
+            ROWENNKALMAN_S3_ENDPOINT
+            ROWENNKALMAN_S3_REGION
+            ROWENNKALMAN_S3_BUCKET
+            ROWENNKALMAN_S3_ACCESS_KEY
+            ROWENNKALMAN_S3_SECRET_KEY
+            ROWENNKALMAN_PUBLIC_IMAGE_BASE
+            ROWENNKALMAN_IMAGE_CDN_URL
+            ROWENNKALMAN_GOATCOUNTER_URL
+            ROWENNKALMAN_GOATCOUNTER_API_KEY
+            ROWENNKALMAN_CF_ACCESS_CLIENT_ID
+            ROWENNKALMAN_CF_ACCESS_CLIENT_SECRET
+            ROWENNKALMAN_RESEND_API_KEY
+            ROWENNKALMAN_CONTACT_TO
+            ROWENNKALMAN_CONTACT_FROM
+          )
+          for key in "${BLANK_KEYS[@]}"; do
+            if [[ -z "${!key+x}" ]]; then
+              echo "ci: $key is unset; refusing to continue" >&2
+              exit 1
+            fi
+            if [[ -n "${!key}" ]]; then
+              echo "ci: $key must be empty; refusing to continue" >&2
+              exit 1
+            fi
+          done
 
       - name: Lint
         run: npm run lint
@@ -38,6 +78,9 @@ jobs:
 
       - name: Unit tests
         run: npm test
+
+      - name: Build with unavailable content store
+        run: ./scripts/build-store-unavailable.sh
 
       - name: Page accessibility (pa11y-ci)
         run: npm run a11y:pages

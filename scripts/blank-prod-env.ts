@@ -43,4 +43,8 @@ if (invokedAsCli) {
   const mode = process.argv[2];
   if (mode === "shell") process.stdout.write(`${toShellExports()}\n`);
   else if (mode === "github") process.stdout.write(`${toGithubEnv()}\n`);
+  else {
+    console.error(`blank-prod-env: unknown mode ${JSON.stringify(mode)} (expected shell|github)`);
+    process.exit(1);
+  }
 }

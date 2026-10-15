@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getSiteContent } from "@/components/site/content";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
+import { NOT_FOUND_SITE } from "./not-found-site";
 import "@/styles/globals.css";
 
 export const metadata: Metadata = { title: "Page not found | Rowenn Beth Kalman", robots: { index: false } };
 
 // Root-level so every unknown address gets it; it brings the site's own header, footer and styles.
-export default async function NotFound() {
-  const { site } = await getSiteContent();
+// Admin edits to site chrome do not reach the 404 page (deliberate: it must build without the store).
+export default function NotFound() {
   return (
     <>
-      <Header site={site} />
+      <Header site={NOT_FOUND_SITE} />
       <main id="main">
         <section className="page not-found">
           <h1 className="display">Page not found</h1>
@@ -22,7 +22,7 @@ export default async function NotFound() {
           </p>
         </section>
       </main>
-      <Footer site={site} />
+      <Footer site={NOT_FOUND_SITE} />
     </>
   );
 }
