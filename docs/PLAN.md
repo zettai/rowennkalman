@@ -116,10 +116,12 @@ The cloud agent builds the schema from `requests/rowennkalman-admin.md`; local r
   (`docs/IMAGES.md`); still worth knowing for the fallback path.
 - Purge Cloudflare's cached copies when a picture is deleted (today: manual runbook in
   `docs/IMAGES.md`, "A deleted picture must not stay reachable"). Needs a purge-only
-  Cloudflare token for `tomas-tello.stream` in Netlify.
+  Cloudflare token for `rowennkalman.com` in Netlify.
 - Faster size-making: `makeSizes` decodes the 2800 px original once per width; on Netlify the
   sizes step took 3.9 s of a 4.7 s upload (2026-09-30). Decode once and resize from that.
-- **Move rowennkalman.com to Cloudflare, once the site is stable** (decided 2026-09-30: not yet).
+- **Done: rowennkalman.com moved to Cloudflare** (DNS 2026-10-21, registrar 2026-10-27, pictures
+  on `img.rowennkalman.com` 2026-10-27; runbook and log in the LLNZ repo,
+  `docs/domains-cloudflare-migration.md`). Original plan, kept for reference:
   Two separate steps, the first reversible:
   1. DNS: point Gandi's nameservers at Cloudflare and copy the zone from Netlify DNS (site:
      apex, `www`, `tesis` → Netlify, **DNS-only/grey cloud**, apex via CNAME flattening; mail

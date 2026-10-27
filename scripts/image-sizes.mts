@@ -47,7 +47,7 @@ console.log(`\n${report.skipped} picture(s) already complete; ${report.planned.l
 for (const p of report.planned) console.log(`  ${p.key} (${p.width}px): has [${p.have.join(", ")}], wants [${p.want.join(", ")}]`);
 if (apply && report.planned.length) {
   console.log(`\nStored ${report.made.length} size file(s). Content saved as version ${report.savedUpdatedAt}.`);
-  const cdn = process.env.ROWENNKALMAN_IMAGE_CDN_URL?.trim().replace(/\/$/, "") || "https://img.tomas-tello.stream";
+  const cdn = process.env.ROWENNKALMAN_IMAGE_CDN_URL?.trim().replace(/\/$/, "") || "https://img.rowennkalman.com";
   if (force && report.made.length) {
     const urls = report.made.map((k) => `${cdn}/${k}`);
     for (let i = 0; i < urls.length; i += 30) {

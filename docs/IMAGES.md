@@ -19,7 +19,7 @@ anything. Built 2026-09-30; the decisions and the numbers behind them are at the
  ── SEND (progress %) ──────────────►       never wider than the original)       content.json (private)
                                             answer { image: {..., sizes}, id }    logs/upload-failures/ (private)
                                                                                          │
- Visitor's browser                        Cloudflare (img.tomas-tello.stream)            │
+ Visitor's browser                        Cloudflare (img.rowennkalman.com)              │
  ─────────────────                        ───────────────────────────────────            │
  page lists a srcset:                     Worker "rowennkalman-images":                  │
    …-640.webp 640w, …-960.webp 960w,        serves only art/*.webp|jpg          ◄───────┘
@@ -50,15 +50,17 @@ Netlify's image CDN (`/_next/image`). Nothing breaks; it is just slower.
 
 | Name | Where | What |
 |---|---|---|
-| `ROWENNKALMAN_IMAGE_CDN_URL` | Netlify env, production context, **not secret** | `https://img.tomas-tello.stream`. **The off switch**: unset it (and redeploy) and every picture goes back to the old way. |
-| Cloudflare API token | macOS Keychain, item `rowennkalman-cloudflare-token` | Used by `scripts/cloudflare.sh`. **Expires 2027-09-30.** Scopes (nothing else, so it cannot touch the tunnel, Access or DNS): Account → Workers Scripts → Edit; Zone → Workers Routes → Edit; Zone → Cache Purge → Purge; Zone → Zone → Read. Zone resources: only `tomas-tello.stream`. No IP filter (home IP changes). |
+| `ROWENNKALMAN_IMAGE_CDN_URL` | Netlify env, production context, **not secret** | `https://img.rowennkalman.com` (was `https://img.tomas-tello.stream` until 2026-10-27). **The off switch**: unset it (and redeploy) and every picture goes back to the old way. |
+| Cloudflare API token | macOS Keychain, item `rowennkalman-cloudflare-token` | Used by `scripts/cloudflare.sh`. **Expires 2027-09-30.** Scopes (nothing else, so it cannot touch the tunnel, Access or DNS): Account → Workers Scripts → Edit; Zone → Workers Routes → Edit; Zone → Cache Purge → Purge; Zone → Zone → Read. Zone resources: **All zones** in the account (checked 2026-10-27; it sees `rowennkalman.com` and `tomas-tello.stream`, the only two). The scopes, not the zone list, are what keep it off DNS. No IP filter (home IP changes). |
 | Netlify token | Keychain, `rowennkalman-netlify-token` | `scripts/netlify.sh` (logs, purge of cached pages). Shown in Netlify as `claude-rowennkalman-debug`. **Expires 2026-12-28** (Netlify's date). |
 | Bucket keys | Netlify env + `.env.local` on Luis's Mac (**production**) | The upload function and the scripts. |
 | Worker config | `cloudflare/image-worker/wrangler.toml` | account id, `ORIGIN` (the bucket URL), the custom domain. Not secret. |
 
-Cloudflare side (Luis's account, zone `tomas-tello.stream`): Worker
-`rowennkalman-images` with custom domain `img.tomas-tello.stream` (Cloudflare created its DNS
-record and certificate). It is **not** a tunnel route; leave it alone when tidying the tunnel.
+Cloudflare side (Luis's account): Worker `rowennkalman-images` with custom domains
+`img.rowennkalman.com` (zone `rowennkalman.com`, since 2026-10-27) and `img.tomas-tello.stream`
+(zone `tomas-tello.stream`, the old host, kept at least 30 days for old links; then remove its
+route from `wrangler.toml`, redeploy, and delete its leftover certificate by hand). Cloudflare
+created each DNS record and certificate. It is **not** a tunnel route; leave it alone when tidying the tunnel.
 
 ## Runbooks
 
@@ -113,8 +115,11 @@ Uploads keep making sizes; they are just not used. Turn it back on by setting th
 ### Purge pictures from Cloudflare's cache
 
 ```
-scripts/cloudflare.sh purge https://img.tomas-tello.stream/art/<id>-640.webp [more URLs]
+scripts/cloudflare.sh purge https://img.rowennkalman.com/art/<id>-640.webp [more URLs]
 ```
+
+Each URL is purged in its own host's zone. While the old host is still up, purge the same paths
+on `img.tomas-tello.stream` too: the cache is per hostname.
 
 Only needed after `--force` (the backfill does it) or if a file was replaced by hand.
 
@@ -127,7 +132,7 @@ them. Only the sizes someone actually viewed are cached, and only at the Cloudfl
 that served them. Unlikely to matter; when it does:
 
 1. Find the picture's key **before** deleting it: on the live page, right-click the painting →
-   copy image address (`https://img.tomas-tello.stream/art/<id>-640.webp`), or in the page source
+   copy image address (`https://img.rowennkalman.com/art/<id>-640.webp`), or in the page source
    its `srcset`. The `<id>` is the part to keep. (If it is already deleted, the key is in the
    last content backup under `.data/backups/` or in the save log line.)
 2. Delete it in the admin and **Save** (nothing is removed until Save).
@@ -135,8 +140,9 @@ that served them. Unlikely to matter; when it does:
 
    ```
    id=<the id>
-   scripts/cloudflare.sh purge https://img.tomas-tello.stream/art/$id.jpg \
-     https://img.tomas-tello.stream/art/$id-{640,960,1280,1920}.webp
+   for h in img.rowennkalman.com img.tomas-tello.stream; do   # both until the old host is retired
+     scripts/cloudflare.sh purge https://$h/art/$id.jpg https://$h/art/$id-{640,960,1280,1920}.webp
+   done
    ```
 4. Check: each of those URLs now answers 404
    (`curl -s -o /dev/null -w '%{http_code}\n' <url>`).
@@ -150,8 +156,8 @@ Edit `cloudflare/image-worker/worker.js`, then `scripts/cloudflare.sh deploy`.
 `scripts/cloudflare.sh tail` shows its live log. Check it afterwards:
 
 ```
-curl -sI https://img.tomas-tello.stream/art/<existing>.jpg | grep -i x-image-cache   # MISS then HIT
-curl -s -o /dev/null -w '%{http_code}\n' https://img.tomas-tello.stream/content.json  # 404
+curl -sI https://img.rowennkalman.com/art/<existing>.jpg | grep -i x-image-cache   # MISS then HIT
+curl -s -o /dev/null -w '%{http_code}\n' https://img.rowennkalman.com/content.json  # 404
 ```
 
 ### Rotate the Cloudflare token (before 2027-09-30)
@@ -166,7 +172,7 @@ curl -s -o /dev/null -w '%{http_code}\n' https://img.tomas-tello.stream/content.
 
 ### "A picture is slow or broken" checklist
 
-1. Page source: does the `<img>` have a `srcset` with `img.tomas-tello.stream`? No → the picture
+1. Page source: does the `<img>` have a `srcset` with `img.rowennkalman.com`? No → the picture
    has no `sizes` (run the backfill dry run) or the switch is off.
 2. `curl -sI <that URL>`: `x-image-cache: HIT` is fast; `MISS` means the first visit at that
    Cloudflare location (fetched from Paris, ~1-1.5 s). 404 → the size file is missing (backfill).
@@ -186,8 +192,9 @@ curl -s -o /dev/null -w '%{http_code}\n' https://img.tomas-tello.stream/content.
   cannot cache, hence the custom domain. **R2** (moving storage to Cloudflare) was left for
   later: a migration, where the Worker is additive and reversible.
 - **Measured:** through the Worker, first request MISS 1.47 s, then HIT 55-83 ms.
-- **`img.tomas-tello.stream`**, not `img.rowennkalman.com`: rowennkalman.com's DNS is on
-  Netlify; moving it to Cloudflare is its own project. Then only the variable changes.
+- **`img.tomas-tello.stream` first**, because rowennkalman.com's DNS was on Netlify. After the
+  domain moved to Cloudflare (DNS 2026-10-21, registrar 2026-10-27) the Worker got
+  `img.rowennkalman.com` as a second custom domain and the variable switched to it (2026-10-27).
 - **Sizes on the server (sharp), not in the browser:** one implementation shared with the
   backfill, WebP (Safari cannot encode WebP from a canvas), and a phone uploads one file.
 - **Widths 640/960/1280/1920:** most visitors are on phones (360-430 pt wide, 2-3x screens):

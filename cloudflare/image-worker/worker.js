@@ -1,5 +1,5 @@
 /**
- * img.tomas-tello.stream: serves the site's pictures from the Scaleway bucket through
+ * img.rowennkalman.com (and, until it is retired, img.tomas-tello.stream): serves the site's pictures from the Scaleway bucket through
  * Cloudflare's cache, so a visitor gets them from a nearby Cloudflare location instead of
  * from Paris every time. See docs/IMAGES.md.
  *

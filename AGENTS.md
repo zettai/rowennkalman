@@ -60,8 +60,8 @@ npm run upload-failures         # failed-upload log (reads PRODUCTION)
   History is capped (about 140 lines) and lags about a minute, so read narrow windows. The app
   logs one JSON line per `save`, `render` and `upload`.
 - `scripts/cloudflare.sh deploy | tail | purge <url>...`: the image Worker `rowennkalman-images`
-  at `img.tomas-tello.stream` (Keychain `rowennkalman-cloudflare-token`, expires 2027-09-30,
-  scoped to Workers, cache purge and zone read on `tomas-tello.stream` only).
+  at `img.rowennkalman.com`, old host `img.tomas-tello.stream` kept for now (Keychain
+  `rowennkalman-cloudflare-token`, expires 2027-09-30, scoped to Workers, cache purge and zone read).
 - `scripts/sonar.sh` (via `npm run sonar`): Keychain `rowennkalman-sonar-token`. Sonar is on
   demand, not in CI; `--issues` re-prints the last analysis. SonarQube Community has no taint
   analysis, so review code that sends user input into a URL fetch, HTML or a shell by hand.
