@@ -46,7 +46,7 @@ live site.
 
 | Task | How |
 |---|---|
-| Deploy | push to `master` builds a deploy; publish it in Netlify ("Publish deploy") after checking it |
+| Deploy | Push to `master` builds a production deploy; see [DEPLOYMENT.md](./DEPLOYMENT.md). |
 | Code quality | `npm run sonar` (SonarQube; commit first) |
 | Netlify from the terminal | `scripts/netlify.sh <netlify-cli args>` |
 | Picture sizes (backfill or repair) | `npm run image-sizes` (dry run), then `-- --apply` |
