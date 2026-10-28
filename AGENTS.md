@@ -7,8 +7,8 @@ Guidance for AI coding agents working in this repo. Human-facing overview: `READ
 `rowennkalman.com`: Rowenn Beth Kalman's painter's portfolio plus her PhD research. Next.js 15
 (App Router) on Netlify; content (`content.json`) and photos in a Scaleway bucket; Rowenn edits
 everything at `/admin` (email magic-link sign-in, allowlist in `ROWENNKALMAN_ADMIN_EMAILS`).
-Contact form and sign-in mail go through Resend. Jest 29 + Playwright. Private GitHub repo
-(`zettai/rowennkalman`), branch `master`.
+Contact form and sign-in mail go through Resend. Jest 29 + Playwright. Public GitHub repo
+(`zettai/rowennkalman`, public since 2026-10-27; no AI trailers or attribution in commits), branch `master`.
 
 ## Read first: three things that have already bitten
 
