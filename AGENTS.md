@@ -29,10 +29,11 @@ Contact form and sign-in mail go through Resend. Jest 29 + Playwright. Private G
    - `npm run image-sizes` and `npm run upload-failures` read `.env.local` on purpose and so hit
      production. Run `image-sizes` as a dry run first; only `-- --apply` writes.
    - Never assume "local" means "safe" here. Names of all settings: `.env.example`.
-2. **A push to `master` deploys to production.** Netlify builds and publishes every push
-   (`netlify.toml` holds the build setup; the repo has no deploy script or CI of its own). There
-   is no pre-push hook. So: **commit freely, but never `git push` without Luis's explicit
-   approval.** Rollback = revert the commit (or "Publish deploy" on an older deploy in Netlify).
+2. **A push to `master` builds but does not go live.** Netlify's auto-publishing is locked
+   (since 2026-10-27): every push builds a deploy, and a person publishes it ("Publish deploy" in
+   Netlify, or the API `restore` call) after checking it. `netlify.toml` holds the build setup.
+   The repo is public: **never `git push` without Luis's explicit approval**, and never publish
+   without it. Rollback = "Publish deploy" on an earlier deploy.
    Deploys occasionally fail on Netlify's side with no code cause: retry once
    (`scripts/netlify.sh api createSiteBuild ...`) before debugging.
 3. **The Netlify token reaches the whole Netlify account**, not just this site (it is shared with
