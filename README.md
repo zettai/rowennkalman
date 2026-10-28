@@ -67,3 +67,5 @@ macOS Keychain, never in the repository.
 ## Copyright
 
 The paintings, photographs and texts are © Rowenn Beth Kalman, all rights reserved.
+
+The code is available under the [MIT License](LICENSE).
