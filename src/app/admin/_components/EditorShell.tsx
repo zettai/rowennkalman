@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import s from "../admin.module.css";
 import type { SaveStatus } from "./usePageEditor";
+import { PURGE_FAILED_MESSAGE, SITE_REFRESHED_MESSAGE } from "./usePageEditor";
 import { useLiveCheck, type LiveState } from "./useLiveCheck";
 import { useStaleCheck } from "./useStaleCheck";
 
@@ -17,14 +18,17 @@ type Props = {
   busy?: boolean;
   status: SaveStatus;
   onSave: () => void;
+  onRefreshSite?: () => void;
   /** The content version this page was loaded (or last saved) with. */
   version: string;
   children: ReactNode;
 };
 
 /** Page frame: heading, form, sticky save bar, unsaved-changes guard. */
-export function EditorShell({ title, description, publicPath, dirty, busy, status, onSave, version, children }: Readonly<Props>) {
-  const live = useLiveCheck(publicPath, status.kind === "saved" ? status.version : undefined);
+export function EditorShell({ title, description, publicPath, dirty, busy, status, onSave, onRefreshSite, version, children }: Readonly<Props>) {
+  const liveVersion =
+    status.kind === "saved" && status.purge !== "failed" && !status.siteRefreshed ? status.version : undefined;
+  const live = useLiveCheck(publicPath, liveVersion);
   const newer = useStaleCheck(version);
   const conflictRef = useRef<HTMLDivElement>(null);
   const outdated = status.kind === "conflict" || newer !== null;
@@ -151,13 +155,13 @@ export function EditorShell({ title, description, publicPath, dirty, busy, statu
       <div className={s.saveBar} data-save-bar>
         <div className={s.saveBarInner}>
           <div className={s.status} role="status" aria-live="polite" data-testid="save-status">
-            <StatusText status={status} dirty={dirty} busy={busy} onReload={reload} live={live} />
+            <StatusText status={status} dirty={dirty} busy={busy} onReload={reload} onRefreshSite={onRefreshSite} live={live} />
           </div>
           <div className={s.row}>
             <a className={s.buttonSecondary} href={publicPath} target="_blank" rel="noreferrer">
               View this page
             </a>
-            <button type="submit" form="page-form" className={s.button} disabled={!dirty || busy || status.kind === "saving"}>
+            <button type="submit" form="page-form" className={s.button} disabled={!dirty || busy || status.kind === "saving" || status.kind === "refreshingSite"}>
               {status.kind === "saving" ? "Saving…" : "Save changes"}
             </button>
           </div>
@@ -172,18 +176,35 @@ function StatusText({
   dirty,
   busy,
   onReload,
+  onRefreshSite,
   live,
 }: Readonly<{
   status: SaveStatus;
   dirty: boolean;
   busy?: boolean;
   onReload: () => void;
+  onRefreshSite?: () => void;
   live: LiveState | null;
 }>) {
   switch (status.kind) {
     case "saving":
       return <span>Saving…</span>;
+    case "refreshingSite":
+      return <span>Refreshing the public site…</span>;
     case "saved":
+      if (status.siteRefreshed) {
+        return <span className={s.inlineStatusOk}>{SITE_REFRESHED_MESSAGE}</span>;
+      }
+      if (status.purge === "failed") {
+        return (
+          <span className={s.inlineStatusWarn}>
+            {PURGE_FAILED_MESSAGE}{" "}
+            <button type="button" className={s.buttonSecondary} onClick={onRefreshSite}>
+              Refresh the site
+            </button>
+          </span>
+        );
+      }
       if (live === "checking") return <span>Saved. Checking the site…</span>;
       if (live === "slow")
         return (

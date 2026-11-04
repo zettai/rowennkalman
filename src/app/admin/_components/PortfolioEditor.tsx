@@ -79,6 +79,7 @@ export function PortfolioEditor({ content, imageUrls }: Readonly<Props>) {
       busy={uploads > 0}
       status={ed.status}
       onSave={ed.save}
+      onRefreshSite={ed.refreshPublicSite}
       version={ed.saved.updatedAt}
     >
       {def.sections.map((section) => (

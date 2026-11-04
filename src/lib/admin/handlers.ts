@@ -160,6 +160,9 @@ export async function sweepAbandonedUploads(store: ContentStore): Promise<string
 // A browser reports at most 20 failures per 10 minutes (one editor, a few retries).
 export const clientLogLimiter: RateLimiter = createRateLimiter({ limit: 20, windowMs: 10 * 60 * 1000 });
 
+/** Manual "Refresh the site" after a failed purge: at most 6 tries per 10 minutes per instance. */
+export const siteRefreshLimiter: RateLimiter = createRateLimiter({ limit: 6, windowMs: 10 * 60 * 1000 });
+
 const ClientFailure = z.object({
   id: z.string().regex(UPLOAD_ID_PATTERN),
   step: z.enum(["prepare", "send", "sizes", "server"]),

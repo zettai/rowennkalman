@@ -1,7 +1,7 @@
 import { purgeCache } from "@netlify/functions";
+import { PAGE_CACHE_TAG } from "@/lib/page-cache";
 
-/** Cache tag on every public page (set in next.config.ts headers). */
-export const PAGE_CACHE_TAG = "rk-pages";
+export { PAGE_CACHE_TAG };
 
 /**
  * Drops Netlify's cached copies of the public pages so the next visit renders the new content.

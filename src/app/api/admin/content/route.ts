@@ -4,6 +4,7 @@ import { getStore } from "@/lib/store";
 import { getSession, unauthorized } from "@/lib/auth/server";
 import { changedPaths, logEvent } from "@/lib/log";
 import { purgePublicPages } from "@/lib/cdn";
+import { refreshPublicPages } from "@/lib/page-refresh";
 import { handleSave, imageUrlsFor, sweepAbandonedUploads } from "@/lib/admin/handlers";
 
 export const dynamic = "force-dynamic";
@@ -29,12 +30,12 @@ export async function PUT(req: Request) {
   const started = Date.now();
   const store = getStore();
   const result = await handleSave(store, body);
-  let purge: string | null = null;
+  let purge: "purged" | "skipped" | "failed" | null = null;
   if (result.changed) {
     revalidatePath("/", "layout");
     purge = await purgePublicPages();
-    // After the response: the editor doesn't wait for it, and a skipped run is caught by the next save.
     after(async () => {
+      if (purge === "purged") await refreshPublicPages("save");
       const t = Date.now();
       const swept = await sweepAbandonedUploads(store);
       logEvent("sweep", { removed: swept.length, ms: Date.now() - t });
@@ -55,5 +56,5 @@ export async function PUT(req: Request) {
     purge,
     ms: Date.now() - started,
   });
-  return Response.json(result.body, { status: result.status, headers: { "Cache-Control": "no-store" } });
+  return Response.json({ ...(result.body as object), purge }, { status: result.status, headers: { "Cache-Control": "no-store" } });
 }

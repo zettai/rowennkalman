@@ -7,6 +7,8 @@ import { PAGES } from "@/lib/content/fields";
 import { PageEditor } from "@/app/admin/_components/PageEditor";
 import { PortfolioEditor } from "@/app/admin/_components/PortfolioEditor";
 import { CONFLICT_MESSAGE } from "@/app/admin/_components/EditorShell";
+import { PURGE_FAILED_MESSAGE, SITE_REFRESHED_MESSAGE } from "@/app/admin/_components/usePageEditor";
+import { axe } from "jest-axe";
 
 jest.mock("next/link", () => ({
   __esModule: true,
@@ -193,5 +195,34 @@ describe("stale-page warning", () => {
     window.dispatchEvent(new Event("focus"));
     await new Promise((r) => setTimeout(r, 50));
     expect(screen.queryByTestId("outdated-notice")).not.toBeInTheDocument();
+  });
+});
+
+describe("purge failure on save", () => {
+  it("shows the failure message, refresh button, retry success, and passes axe", async () => {
+    const saved = { ...content, updatedAt: "2026-02-02T00:00:00.000Z", home: { ...content.home, heroTitle: "Marsh light" } };
+    const fetchMock = jest.fn(async (_url: string, init?: RequestInit) => {
+      if (init?.method === "POST" && _url.includes("/api/admin/refresh-pages")) {
+        return { ok: true, status: 200, json: async () => ({ purge: "purged", refresh: {} }) } as Response;
+      }
+      if (init?.body) {
+        return { ok: true, status: 200, json: async () => ({ content: saved, imageUrls: urls, purge: "failed" }) } as Response;
+      }
+      return { ok: true, status: 200, text: async () => `<meta name="content-version" content="${saved.updatedAt}">` } as Response;
+    }) as unknown as typeof fetch;
+    globalThis.fetch = fetchMock;
+
+    const user = userEvent.setup();
+    const { container } = render(<PageEditor page="home" content={content} imageUrls={urls} />);
+    await user.clear(screen.getByLabelText("Your name (big title)"));
+    await user.type(screen.getByLabelText("Your name (big title)"), "Marsh light");
+    await user.click(screen.getByRole("button", { name: "Save changes" }));
+    await waitFor(() => expect(screen.getByTestId("save-status")).toHaveTextContent(PURGE_FAILED_MESSAGE));
+    expect(screen.getByRole("button", { name: "Refresh the site" })).toBeInTheDocument();
+    expect(await axe(container)).toHaveNoViolations();
+
+    await user.click(screen.getByRole("button", { name: "Refresh the site" }));
+    await waitFor(() => expect(screen.getByTestId("save-status")).toHaveTextContent(SITE_REFRESHED_MESSAGE));
+    expect(fetchMock).toHaveBeenCalledWith("/api/admin/refresh-pages", expect.objectContaining({ method: "POST" }));
   });
 });

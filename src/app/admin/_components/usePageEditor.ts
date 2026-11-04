@@ -7,14 +7,21 @@ import { discardUpload } from "@/lib/upload/client";
 
 export type ImageUrls = Record<string, string>;
 
+export type PurgeResult = "purged" | "skipped" | "failed" | null;
+
 export type SaveStatus =
   | { kind: "idle" }
   | { kind: "saving" }
-  | { kind: "saved"; version?: string }
+  | { kind: "saved"; version?: string; purge?: PurgeResult; siteRefreshed?: boolean }
+  | { kind: "refreshingSite"; version?: string }
   | { kind: "conflict" }
   | { kind: "signedOut" }
   | { kind: "invalid"; message: string; issues: { path: string; message: string }[] }
   | { kind: "error"; message: string };
+
+export const PURGE_FAILED_MESSAGE =
+  "Saved. The public site did not refresh, so visitors may see the old version for now.";
+export const SITE_REFRESHED_MESSAGE = "The public site is refreshed.";
 
 /** Draft state for one page of Content, with save, conflict and image URL handling. */
 export function usePageEditor<P extends PageKey>(page: P, initial: Content, initialUrls: ImageUrls) {
@@ -59,12 +66,13 @@ export function usePageEditor<P extends PageKey>(page: P, initial: Content, init
       imageUrls?: ImageUrls;
       message?: string;
       issues?: { path: string; message: string }[];
+      purge?: PurgeResult;
     };
     if (res.ok && body.content) {
       setSaved(body.content);
       setDraft(body.content[page]);
       setUrls((u) => ({ ...u, ...body.imageUrls }));
-      setStatus({ kind: "saved", version: body.content.updatedAt });
+      setStatus({ kind: "saved", version: body.content.updatedAt, purge: body.purge ?? null });
     } else if (res.status === 409) {
       setStatus({ kind: "conflict" });
     } else if (res.status === 401) {
@@ -76,7 +84,24 @@ export function usePageEditor<P extends PageKey>(page: P, initial: Content, init
     }
   }, [draft, page, saved.updatedAt, status.kind]);
 
-  return { saved, draft, update, dirty, status, save, urls, addImageUrl, releaseImage };
+  const refreshPublicSite = useCallback(async () => {
+    if (status.kind !== "saved" || status.purge !== "failed") return;
+    const version = status.version;
+    setStatus({ kind: "refreshingSite", version });
+    try {
+      const res = await fetch("/api/admin/refresh-pages", { method: "POST" });
+      const body = (await res.json().catch(() => ({}))) as { purge?: PurgeResult };
+      if (res.ok && body.purge === "purged") {
+        setStatus({ kind: "saved", version, purge: "purged", siteRefreshed: true });
+      } else {
+        setStatus({ kind: "saved", version, purge: "failed" });
+      }
+    } catch {
+      setStatus({ kind: "saved", version, purge: "failed" });
+    }
+  }, [status]);
+
+  return { saved, draft, update, dirty, status, save, refreshPublicSite, urls, addImageUrl, releaseImage };
 }
 
 export type PageEditorApi<P extends PageKey> = ReturnType<typeof usePageEditor<P>>;
