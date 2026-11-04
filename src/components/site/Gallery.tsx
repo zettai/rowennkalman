@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { lightboxSizesForPicture } from "@/lib/images/lightbox-sizes";
 import type { Artwork } from "./content";
 import { Painting } from "./Painting";
 
@@ -105,7 +106,7 @@ export function Gallery({ items }: Readonly<{ items: Item[] }>) {
                 image={current.image}
                 src={current.src}
                 srcSet={current.srcSet}
-                sizes="90vw"
+                sizes={lightboxSizesForPicture(current.image.width, current.image.height)}
                 layout="fill"
                 fit="contain"
                 eager
@@ -122,9 +123,23 @@ export function Gallery({ items }: Readonly<{ items: Item[] }>) {
               {neighbours.map((n) =>
                 n.srcSet ? (
                   // eslint-disable-next-line @next/next/no-img-element -- warms the cache for the next arrow press
-                  <img key={n.id} src={n.src} srcSet={n.srcSet} sizes="90vw" alt="" loading="eager" />
+                  <img
+                    key={n.id}
+                    src={n.src}
+                    srcSet={n.srcSet}
+                    sizes={lightboxSizesForPicture(n.image.width, n.image.height)}
+                    alt=""
+                    loading="eager"
+                  />
                 ) : (
-                  <Image key={n.id} src={n.src} alt="" fill loading="eager" sizes="90vw" />
+                  <Image
+                    key={n.id}
+                    src={n.src}
+                    alt=""
+                    fill
+                    loading="eager"
+                    sizes={lightboxSizesForPicture(n.image.width, n.image.height)}
+                  />
                 ),
               )}
             </div>

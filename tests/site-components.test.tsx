@@ -1,6 +1,7 @@
 /** @jest-environment jsdom */
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { lightboxSizesForPicture } from "@/lib/images/lightbox-sizes";
 import { Painting } from "@/components/site/Painting";
 import { Gallery } from "@/components/site/Gallery";
 import { ContactForm } from "@/components/site/ContactForm";
@@ -22,8 +23,28 @@ beforeAll(() => {
   };
 });
 
-const image = (n: number) => ({ key: `art/${n}.jpg`, width: 800, height: 600, alt: `Painting ${n} alt`, blur: "data:image/jpeg;base64,AAAA" });
-const art = (n: number, extra: Partial<{ title: string; medium: string; size: string; year: string; description: string }> = {}) => ({
+const image = (n: number, size: Partial<{ width: number; height: number }> = {}) => ({
+  key: `art/${n}.jpg`,
+  width: 800,
+  height: 600,
+  alt: `Painting ${n} alt`,
+  blur: "data:image/jpeg;base64,AAAA",
+  ...size,
+});
+const srcSetFor = (n: number) =>
+  `https://img.test/art/${n}-640.webp 640w, https://img.test/art/${n}-960.webp 960w, https://img.test/art/${n}.jpg 2000w`;
+const art = (
+  n: number,
+  extra: Partial<{
+    title: string;
+    medium: string;
+    size: string;
+    year: string;
+    description: string;
+    srcSet: string;
+    image: ReturnType<typeof image>;
+  }> = {},
+) => ({
   id: `00000000-0000-4000-8000-00000000000${n}`,
   image: image(n),
   title: "",
@@ -32,6 +53,7 @@ const art = (n: number, extra: Partial<{ title: string; medium: string; size: st
   year: "",
   description: "",
   src: `/img/${n}.jpg`,
+  srcSet: srcSetFor(n),
   ...extra,
 });
 
@@ -65,8 +87,11 @@ describe("Painting", () => {
 });
 
 describe("Gallery lightbox", () => {
-  const items = [art(1, { title: "Star tree", medium: "Acrylic", size: "6 x 6 in", year: "2024", description: "Night." }), art(2), art(3)];
-
+  const items = [
+    art(1, { title: "Star tree", medium: "Acrylic", size: "6 x 6 in", year: "2024", description: "Night." }),
+    art(2, { image: image(2, { width: 2800, height: 2000 }) }),
+    art(3),
+  ];
   it("shows titles and details under thumbnails when filled in", () => {
     render(<Gallery items={items} />);
     expect(screen.getAllByTestId("artwork-title").map((e) => e.textContent)).toEqual(["Star tree"]);
@@ -82,14 +107,18 @@ describe("Gallery lightbox", () => {
     expect(dialog).toHaveAttribute("open");
     expect(within(dialog).getByText("Night.")).toBeInTheDocument();
     expect(within(dialog).getByText("1 / 3")).toBeInTheDocument();
+    const mainImg = within(dialog).getByAltText("Painting 1 alt");
+    expect(mainImg).toHaveAttribute("sizes", lightboxSizesForPicture(800, 600));
+    const preloadImgs = dialog.querySelectorAll("[hidden] img");
+    expect(preloadImgs).toHaveLength(2);
+    const preloadSizes = [...preloadImgs].map((img) => img.getAttribute("sizes"));
+    expect(preloadSizes).toContain(lightboxSizesForPicture(800, 600));
+    expect(preloadSizes).toContain(lightboxSizesForPicture(2800, 2000));
     fireEvent.keyDown(dialog, { key: "ArrowRight" });
     expect(within(dialog).getByText("2 / 3")).toBeInTheDocument();
     fireEvent.keyDown(dialog, { key: "ArrowLeft" });
     fireEvent.keyDown(dialog, { key: "ArrowLeft" });
     expect(within(dialog).getByText("3 / 3")).toBeInTheDocument(); // wraps around
-    // The paintings either side are preloaded while one is open.
-    expect(dialog.querySelectorAll("[hidden] img")).toHaveLength(2);
-    // A click inside the content keeps it open; a click on the backdrop (the dialog itself) closes it.
     fireEvent.click(within(dialog).getByText("3 / 3"));
     expect(dialog).toHaveAttribute("open");
     fireEvent.click(dialog);
