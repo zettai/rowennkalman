@@ -11,3 +11,7 @@ routes = [
 
 [vars]
 ORIGIN = "https://rowennkalman.s3.fr-par.scw.cloud"
+
+[[r2_buckets]]
+binding = "ART"
+bucket_name = "rowennkalman-art"

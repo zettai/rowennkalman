@@ -1,6 +1,9 @@
+import { after } from "next/server";
 import { getStore } from "@/lib/store";
 import { unauthorized } from "@/lib/auth/server";
 import { handleDiscardUpload, handleUpload, uploadIdFrom } from "@/lib/admin/handlers";
+import type { ImageRef } from "@/lib/content/schema";
+import { warmPictureCdn } from "@/lib/images/warm";
 import { MAX_UPLOAD_BYTES } from "@/lib/upload/verify";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +29,14 @@ export async function POST(req: Request) {
   const result = await handleUpload(getStore(), file instanceof Blob ? file : null, form.get("alt"), {
     id: uploadIdFrom(form.get("uploadId")),
   });
+  if (result.status === 201) {
+    const image = (result.body as { image?: ImageRef }).image;
+    if (image?.sizes?.length) {
+      after(async () => {
+        await warmPictureCdn(image);
+      });
+    }
+  }
   return Response.json(result.body, { status: result.status });
 }
 
