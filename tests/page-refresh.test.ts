@@ -13,15 +13,20 @@ describe("refreshPublicPages", () => {
 
   it("requests every public page for each Accept-Encoding from siteUrl()", async () => {
     const urls: string[] = [];
+    const responses: Response[] = [];
     const fetchFn = jest.fn(async (input: RequestInfo | URL) => {
       urls.push(String(input));
-      return new Response("", { status: 200 });
+      const res = new Response("<html></html>", { status: 200 });
+      responses.push(res);
+      return res;
     }) as typeof fetch;
     jest.mocked(logEvent).mockClear();
 
     await refreshPublicPages("save", { baseUrl: BASE, fetchFn, timeoutMs: 5000 });
 
     expect(fetchFn).toHaveBeenCalledTimes(PUBLIC_PAGE_PATHS.length * REFRESH_ACCEPT_ENCODINGS.length);
+    expect(responses).toHaveLength(PUBLIC_PAGE_PATHS.length * REFRESH_ACCEPT_ENCODINGS.length);
+    for (const res of responses) expect(res.bodyUsed).toBe(true);
     for (const path of PUBLIC_PAGE_PATHS) {
       const expected = `${BASE.origin}${path === "/" ? "/" : path}`;
       expect(urls.filter((u) => u === expected || u === expected.replace(/\/$/, "") || u.startsWith(expected))).not.toHaveLength(0);
@@ -30,12 +35,18 @@ describe("refreshPublicPages", () => {
   });
 
   it("records HTTP 500 and does not throw", async () => {
-    const fetchFn = jest.fn(async () => new Response("", { status: 500 })) as typeof fetch;
+    const responses: Response[] = [];
+    const fetchFn = jest.fn(async () => {
+      const res = new Response("error page", { status: 500 });
+      responses.push(res);
+      return res;
+    }) as typeof fetch;
     jest.mocked(logEvent).mockClear();
 
     const summary = await refreshPublicPages("retry", { baseUrl: BASE, fetchFn, timeoutMs: 5000 });
 
     expect(summary["/"]![REFRESH_ACCEPT_ENCODINGS[0]!]).toBe(500);
+    expect(responses.every((r) => r.bodyUsed)).toBe(true);
   });
 
   it("records timeout without throwing", async () => {
@@ -85,5 +96,30 @@ describe("refreshPublicPages", () => {
     expect(summary[slowPath]![REFRESH_ACCEPT_ENCODINGS[0]!]).toBe("timeout");
     expect(summary["/"]![REFRESH_ACCEPT_ENCODINGS[0]!]).toBe(200);
     expect(elapsed).toBeLessThan(400);
+  });
+
+  it("records timeout when the response body never finishes", async () => {
+    jest.useFakeTimers();
+    const fetchFn = jest.fn(
+      () =>
+        Promise.resolve(
+          new Response(
+            new ReadableStream({
+              pull() {
+                /* stall: body read never completes until abort */
+              },
+            }),
+            { status: 200 },
+          ),
+        ),
+    ) as typeof fetch;
+    jest.mocked(logEvent).mockClear();
+
+    const pending = refreshPublicPages("save", { baseUrl: BASE, fetchFn, timeoutMs: 100 });
+    await jest.advanceTimersByTimeAsync(250);
+    const summary = await pending;
+
+    expect(summary["/"]![REFRESH_ACCEPT_ENCODINGS[0]!]).toBe("timeout");
+    jest.useRealTimers();
   });
 });

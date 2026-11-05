@@ -19,6 +19,22 @@ function defaultDeps(): RefreshDeps {
   return { baseUrl: siteUrl(), fetchFn: fetch, timeoutMs: REQUEST_TIMEOUT_MS };
 }
 
+function abortError(): Error {
+  const err = new Error("aborted");
+  err.name = "AbortError";
+  return err;
+}
+
+async function readBody(res: Response, signal: AbortSignal): Promise<void> {
+  if (signal.aborted) throw abortError();
+  await Promise.race([
+    res.arrayBuffer(),
+    new Promise<void>((_, reject) => {
+      signal.addEventListener("abort", () => reject(abortError()), { once: true });
+    }),
+  ]);
+}
+
 async function fetchOne(
   url: URL,
   encoding: string,
@@ -37,6 +53,7 @@ async function fetchOne(
       cache: "no-store",
       signal: controller.signal,
     });
+    await readBody(res, controller.signal);
     return res.status;
   } catch (err) {
     if (err instanceof Error && err.name === "AbortError") return "timeout";

@@ -25,13 +25,17 @@ for (const encoding of ENCODINGS) {
       });
       status = res.status;
       cacheStatus = res.headers.get("cache-status") ?? res.headers.get("Cache-Status") ?? "";
+      const ttfb = Math.round(performance.now() - started);
+      await res.arrayBuffer();
+      const totalMs = Math.round(performance.now() - started);
+      console.log(`${path}\t${encoding}\t${status}\t${ttfb}ms\t${cacheStatus}\t${totalMs}ms`);
     } catch (err) {
       status = 0;
       cacheStatus = err instanceof Error ? err.message : "error";
       failed = true;
+      const totalMs = Math.round(performance.now() - started);
+      console.log(`${path}\t${encoding}\t${status}\t${totalMs}ms\t${cacheStatus}\t${totalMs}ms`);
     }
-    const ttfb = Math.round(performance.now() - started);
-    console.log(`${path}\t${encoding}\t${status}\t${ttfb}ms\t${cacheStatus}`);
     if (status !== 200) failed = true;
   }
 }
