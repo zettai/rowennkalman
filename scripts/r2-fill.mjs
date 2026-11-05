@@ -3,32 +3,12 @@
  * Warms rowennkalman-art by requesting every picture URL listed on the public site pages.
  * Usage: node scripts/r2-fill.mjs [baseUrl]
  */
+import { pictureUrlsFromHtml } from "./picture-urls-from-html.js";
+
 const SITE = (process.argv[2] ?? "https://rowennkalman.com").replace(/\/$/, "");
-const PAGES = ["", "/about", "/contact", "/portfolio", "/research"];
-const IMG = "https://img.rowennkalman.com/art/";
+// Keep in sync with src/lib/page-cache.ts
+const PAGES = ["/", "/about", "/portfolio", "/research", "/contact"];
 const CONCURRENCY = 6;
-
-const srcRe = /\bsrc=["'](https:\/\/img\.rowennkalman\.com\/art\/[^"']+)["']/gi;
-const srcsetRe = /\bsrcset=["']([^"']+)["']/gi;
-
-function urlsFromHtml(html) {
-  const out = new Set();
-  for (const re of [srcRe, srcsetRe]) {
-    re.lastIndex = 0;
-    let m;
-    while ((m = re.exec(html)) !== null) {
-      const chunk = m[1];
-      if (chunk.startsWith(IMG)) out.add(chunk);
-      else {
-        for (const part of chunk.split(",")) {
-          const url = part.trim().split(/\s+/)[0];
-          if (url?.startsWith(IMG)) out.add(url);
-        }
-      }
-    }
-  }
-  return [...out];
-}
 
 async function fetchText(path) {
   const res = await fetch(`${SITE}${path}`);
@@ -45,7 +25,7 @@ async function warmUrl(url) {
 
 async function main() {
   const htmls = await Promise.all(PAGES.map((p) => fetchText(p)));
-  const urls = [...new Set(htmls.flatMap(urlsFromHtml))].sort();
+  const urls = [...new Set(htmls.flatMap(pictureUrlsFromHtml))].sort();
   if (!urls.length) {
     console.log("No picture URLs found.");
     return;
