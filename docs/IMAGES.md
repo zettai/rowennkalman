@@ -23,10 +23,17 @@ anything. Built 2026-09-30; the decisions and the numbers behind them are at the
  ─────────────────                        ───────────────────────────────────            │
  page lists a srcset:                     Worker "rowennkalman-images":                  │
    …-640.webp 640w, …-960.webp 960w,        serves only art/*.webp|jpg          ◄───────┘
-   …-1280.webp 1280w, …-1920.webp 1920w,    MISS: fetch from the bucket, keep a copy
-   <id>.jpg 2800w                           HIT: answer from the nearby Cloudflare copy
- and picks the smallest that fits  ──►      (kept a year; files never change)
+   …-1280.webp 1280w, …-1920.webp 1920w,    HIT: answer from the nearby Cloudflare copy
+   <id>.jpg 2800w                           R2: else read the copy in R2 "rowennkalman-art"
+ and picks the smallest that fits  ──►      MISS: else fetch from Paris, store it in R2
+                                            (cache and R2 copies never change)
 ```
+
+Since 2026-11-04 every picture also has a copy in the R2 bucket `rowennkalman-art` (Cloudflare,
+Western North America, private). The cache is per Cloudflare location and Seattle alone was served
+from three locations in an hour, so a cold location now reads R2 instead of Paris. Scaleway stays
+the source of truth; R2 fills itself on a Paris fetch, after each upload (the upload route requests
+the new picture's files once, log line `warm`) and from `node scripts/r2-fill.mjs`.
 
 A picture **without** `sizes` in the content (older ones before the backfill, or one whose
 sizes failed) is served the old way: the original from the bucket, resized per request by
@@ -43,7 +50,8 @@ Netlify's image CDN (`/_next/image`). Nothing breaks; it is just slower.
 | `makeSizes` / `sizeKey` / `srcSetFor` | `src/lib/images/sizes.ts` | the one resize implementation (sharp), used by uploads **and** the backfill |
 | `pictureSrc` | `src/components/site/content.ts` | per picture: srcset through the Worker, or the old way |
 | `Painting` | `src/components/site/Painting.tsx` | plain `<img srcset>` when there are sizes, `next/image` otherwise; blur preview + fade |
-| Worker | `cloudflare/image-worker/` | caches pictures at Cloudflare; 404 for anything outside `art/` |
+| Worker | `cloudflare/image-worker/` | cache, then R2 copy, then Paris (`X-Image-Cache`: HIT, R2, MISS); writes Paris fetches into R2; 404 for anything outside `art/` |
+| `warmPictureCdn` | `src/lib/images/warm.ts` | after an upload, requests the original and each size through the Worker once so R2 has them |
 | Stores | `src/lib/store/*.ts` | `putImageSize`; `deleteImage` also deletes the sizes; `listImages` lists originals only, so the orphan sweep never deletes sizes on their own |
 
 ## Switches, secrets and where they live
@@ -51,7 +59,7 @@ Netlify's image CDN (`/_next/image`). Nothing breaks; it is just slower.
 | Name | Where | What |
 |---|---|---|
 | `ROWENNKALMAN_IMAGE_CDN_URL` | Netlify env, production context, **not secret** | `https://img.rowennkalman.com` (was `https://img.tomas-tello.stream` until 2026-10-27). **The off switch**: unset it (and redeploy) and every picture goes back to the old way. |
-| Cloudflare API token | macOS Keychain, item `rowennkalman-cloudflare-token` | Used by `scripts/cloudflare.sh`. **Expires 2027-09-30.** Scopes (nothing else, so it cannot touch the tunnel, Access or DNS): Account → Workers Scripts → Edit; Zone → Workers Routes → Edit; Zone → Cache Purge → Purge; Zone → Zone → Read. Zone resources: **All zones** in the account (checked 2026-10-27; it sees `rowennkalman.com` and `tomas-tello.stream`, the only two). The scopes, not the zone list, are what keep it off DNS. No IP filter (home IP changes). |
+| Cloudflare API token | macOS Keychain, item `rowennkalman-cloudflare-token` | Used by `scripts/cloudflare.sh`. **Expires 2027-09-30.** Scopes (nothing else, so it cannot touch the tunnel, Access or DNS): Account → Workers Scripts → Edit; Account → Workers R2 Storage → Edit and Account → Account Analytics → Read (both added 2026-11-04); Zone → Workers Routes → Edit; Zone → Cache Purge → Purge; Zone → Zone → Read. Zone resources: **All zones** in the account (checked 2026-10-27; it sees `rowennkalman.com` and `tomas-tello.stream`, the only two). The scopes, not the zone list, are what keep it off DNS. No IP filter (home IP changes). |
 | Netlify token | Keychain, `rowennkalman-netlify-token` | `scripts/netlify.sh` (logs, purge of cached pages). Shown in Netlify as `claude-rowennkalman-debug`. **Expires 2026-12-28** (Netlify's date). |
 | Bucket keys | Netlify env + `.env.local` on Luis's Mac (**production**) | The upload function and the scripts. |
 | Worker config | `cloudflare/image-worker/wrangler.toml` | account id, `ORIGIN` (the bucket URL), the custom domain. Not secret. |
@@ -112,6 +120,15 @@ Where the records come from:
 2. Redeploy (`scripts/netlify.sh api createSiteBuild --data '{"site_id":"fdee4ce6-92ce-4b16-9948-83aeba4f7c2b"}'`).
 Uploads keep making sizes; they are just not used. Turn it back on by setting the variable again.
 
+### Fill R2 with every picture on the site
+
+```
+node scripts/r2-fill.mjs          # requests every picture file the five public pages list
+```
+
+Prints a count per `X-Image-Cache` value; a second run should show no MISS. Safe to re-run. Use it
+after deploying a Worker change or if R2 was emptied.
+
 ### Purge pictures from Cloudflare's cache
 
 ```
@@ -125,9 +142,10 @@ Only needed after `--force` (the backfill does it) or if a file was replaced by 
 
 ### A deleted picture must not stay reachable (e.g. Rowenn withdraws a painting)
 
-**Caveat (known, accepted 2026-09-30):** deleting a picture in the admin removes the original and
-its sizes from the bucket, and nothing on the site links to them any more, but **Cloudflare keeps
-the copies it already cached for up to a year**. Anyone holding the exact URL could still open
+**Caveat (known, accepted 2026-09-30; R2 added 2026-11-04):** deleting a picture in the admin removes
+the original and its sizes from the bucket, and nothing on the site links to them any more, but
+**the R2 copy stays until removed by hand, and Cloudflare keeps the copies it already cached for up
+to a year**. Anyone holding the exact URL could still open
 them. Only the sizes someone actually viewed are cached, and only at the Cloudflare locations
 that served them. Unlikely to matter; when it does:
 
@@ -136,7 +154,13 @@ that served them. Unlikely to matter; when it does:
    its `srcset`. The `<id>` is the part to keep. (If it is already deleted, the key is in the
    last content backup under `.data/backups/` or in the save log line.)
 2. Delete it in the admin and **Save** (nothing is removed until Save).
-3. Purge every size from Cloudflare (purging a URL that was never cached is harmless):
+3. Delete the R2 copies first (otherwise a later miss would serve them again):
+
+   ```
+   id=<the id>
+   scripts/cloudflare.sh r2-delete art/$id.jpg art/$id-{640,960,1280,1920}.webp
+   ```
+4. Purge every size from Cloudflare (purging a URL that was never cached is harmless):
 
    ```
    id=<the id>
@@ -144,7 +168,7 @@ that served them. Unlikely to matter; when it does:
      scripts/cloudflare.sh purge https://$h/art/$id.jpg https://$h/art/$id-{640,960,1280,1920}.webp
    done
    ```
-4. Check: each of those URLs now answers 404
+5. Check: each of those URLs now answers 404
    (`curl -s -o /dev/null -w '%{http_code}\n' <url>`).
 
 Doing this automatically on delete would need a purge-only Cloudflare token in Netlify; see
@@ -156,7 +180,7 @@ Edit `cloudflare/image-worker/worker.js`, then `scripts/cloudflare.sh deploy`.
 `scripts/cloudflare.sh tail` shows its live log. Check it afterwards:
 
 ```
-curl -sI https://img.rowennkalman.com/art/<existing>.jpg | grep -i x-image-cache   # MISS then HIT
+curl -sI https://img.rowennkalman.com/art/<existing>.jpg | grep -i x-image-cache   # R2 (or MISS once), then HIT
 curl -s -o /dev/null -w '%{http_code}\n' https://img.rowennkalman.com/content.json  # 404
 ```
 
@@ -174,8 +198,9 @@ curl -s -o /dev/null -w '%{http_code}\n' https://img.rowennkalman.com/content.js
 
 1. Page source: does the `<img>` have a `srcset` with `img.rowennkalman.com`? No → the picture
    has no `sizes` (run the backfill dry run) or the switch is off.
-2. `curl -sI <that URL>`: `x-image-cache: HIT` is fast; `MISS` means the first visit at that
-   Cloudflare location (fetched from Paris, ~1-1.5 s). 404 → the size file is missing (backfill).
+2. `curl -sI <that URL>`: `x-image-cache: HIT` is fast (this location's copy); `R2` means this
+   location had no copy and read R2; `MISS` means R2 had none either and it came from Paris
+   (0.6-1.8 s; run `node scripts/r2-fill.mjs`). 404 → the size file is missing (backfill).
 3. `npm run upload-failures -- --since 1d` for recent upload trouble.
 
 ## Why it is built this way (2026-09-30)
@@ -197,6 +222,10 @@ curl -s -o /dev/null -w '%{http_code}\n' https://img.rowennkalman.com/content.js
   `img.rowennkalman.com` as a second custom domain and the variable switched to it (2026-10-27).
 - **Sizes on the server (sharp), not in the browser:** one implementation shared with the
   backfill, WebP (Safari cannot encode WebP from a canvas), and a phone uploads one file.
+- **R2 copy (2026-11-04):** measured from Seattle, all 101 picture URLs were cache misses (0.6-1.8 s
+  to first byte) and the house was served from SJC, LAX and SEA within an hour, each with its own
+  cache. The Cache API is per location and never tiered, so an R2 copy near visitors replaces Paris
+  on a miss. Evidence: LLNZ `projects/rowennkalman/audits/2026-11-04-photo-load-times.md`.
 - **Widths 640/960/1280/1920:** most visitors are on phones (360-430 pt wide, 2-3x screens):
   thumbnails need ~640, full width needs ~860 (2x) or ~1290 (3x), the lightbox ~1170. 1920 and
   the 2800 original serve desktops.

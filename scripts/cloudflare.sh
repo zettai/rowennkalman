@@ -6,6 +6,7 @@
 #   scripts/cloudflare.sh deploy          # deploy the Worker
 #   scripts/cloudflare.sh tail            # live Worker log
 #   scripts/cloudflare.sh purge <url>...  # drop pictures from Cloudflare's cache
+#   scripts/cloudflare.sh r2-delete <key>...  # delete picture copies from R2 (art/<id>...)
 set -euo pipefail
 cd "$(dirname "$0")/../cloudflare/image-worker"
 CLOUDFLARE_API_TOKEN="$(security find-generic-password -a "$USER" -s rowennkalman-cloudflare-token -w)"
@@ -30,5 +31,15 @@ case "${1:-}" in
         python3 -c 'import json,sys; d=json.load(sys.stdin); print("purged" if d["success"] else d["errors"])'
     done
     ;;
-  *) echo "usage: $0 deploy | tail | purge <url>..." >&2; exit 2 ;;
+  r2-delete)
+    shift
+    [ $# -gt 0 ] || { echo "usage: $0 r2-delete art/<file>..." >&2; exit 2; }
+    for key in "$@"; do
+      case "$key" in
+        art/*) npx -y wrangler@4 r2 object delete "rowennkalman-art/$key" --remote ;;
+        *) echo "not a picture key: $key" >&2; exit 2 ;;
+      esac
+    done
+    ;;
+  *) echo "usage: $0 deploy | tail | purge <url>... | r2-delete <key>..." >&2; exit 2 ;;
 esac

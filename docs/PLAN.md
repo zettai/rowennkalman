@@ -65,10 +65,17 @@ Grilled and agreed 2026-09-29. Source of design + content: Rowenn's Squarespace 
 - Function logs: `scripts/netlify.sh logs --source functions --function ___netlify-server-handler --since <ISO> --until <ISO> --json`
   (token from the Keychain item `rowennkalman-netlify-token`, created 2026-09-30 with a 90-day expiry; it reaches the whole Netlify account).
 
-## Page caching (2026-09-30)
+## Page caching (2026-09-30, lifetime raised 2026-11-04)
 
 Public pages render from the latest content, and Netlify's CDN keeps them for `PAGE_CDN_SECONDS`
-(next.config.ts; 1 hour since 2026-09-30, after a real save logged "purge":"purged") with tag `rk-pages` and **no** stale-while-revalidate. Every admin save
+(`src/lib/page-cache.ts`; 1 hour from 2026-09-30, **one year since 2026-11-04**) with tag `rk-pages` and **no** stale-while-revalidate.
+Why a year: Rowenn saves rarely and expects every visit to be fast; on 2026-11-04 Netlify still held
+an expired copy of `/about` 23 h later but re-rendered it (2-5 s) because of the 1-hour limit
+(LLNZ `projects/rowennkalman/audits/2026-11-04-photo-load-times.md`). After a purge the save route
+re-requests the five pages (`src/lib/page-refresh.ts`: two rounds, Chrome and Safari
+`Accept-Encoding`, five pages in parallel, 8 s per request, bodies read in full, log line
+`refresh`). A failed purge is shown in the admin with a "Refresh the site" button
+(`POST /api/admin/refresh-pages`). After a publish: `node scripts/refresh-pages.mjs`. Every admin save
 purges the tag (`src/lib/cdn.ts`) and logs `purge` in the save line. Proven on a branch deploy: a
 cached page kept the old version after a content change until the purge, then switched at once, both
 with the API and from inside the function. The earlier Next ISR set-up served stale pages after a

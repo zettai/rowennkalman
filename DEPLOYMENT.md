@@ -10,6 +10,11 @@ The Netlify site is linked to this repo with **auto-publishing locked**. A push 
 production deploy but does not publish it; the owner publishes it with "Publish deploy" in
 Netlify after checking the deploy's own URL. Nothing in `.github/workflows` deploys.
 
+After each publish, run `node scripts/refresh-pages.mjs`: a publish empties Netlify's page cache, and
+the script requests the five public pages (Chrome- and Safari-like `Accept-Encoding`) so the first
+visitor gets a cached copy instead of a cold render. It prints status, time and `cache-status` per
+request and exits 1 if any page is not 200.
+
 This repo is public, so Netlify's sensitive variable policy is set to **Require approval**: a pull
 request from a fork does not build with production secrets until it is approved.
 
@@ -21,8 +26,10 @@ Rollback: in the Netlify UI, "Publish deploy" on an earlier deploy. Netlify keep
 - Production settings are Netlify environment variables. Names are in
   [Environment variables](#environment-variables) below; local values go in `.env.local`.
 - On Netlify, logs go to stdout (function logs); there is no file logger in the app.
-- Public pages are cached under the tag `rk-pages` for an hour; every admin save purges that tag
-  (`src/lib/cdn.ts`).
+- Public pages are cached under the tag `rk-pages` for a year (`src/lib/page-cache.ts`), that is
+  until the next admin save, which purges the tag (`src/lib/cdn.ts`) and then re-requests the five
+  pages (`src/lib/page-refresh.ts`, log line `refresh`). If the purge fails, the admin says so and
+  offers "Refresh the site" (`POST /api/admin/refresh-pages`, signed in, 6 per 10 minutes).
 
 ## Environment variables
 

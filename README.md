@@ -51,9 +51,9 @@ live site.
 | Netlify from the terminal | `scripts/netlify.sh <netlify-cli args>` |
 | Picture sizes (backfill or repair) | `npm run image-sizes` (dry run), then `-- --apply` |
 | Failed uploads | `npm run upload-failures [-- --since 7d]` |
-| Image Worker | `scripts/cloudflare.sh deploy \| tail \| purge <url>` |
+| Image Worker | `scripts/cloudflare.sh deploy \| tail \| purge <url> \| r2-delete <key>` |
 
-Public pages are cached for an hour and purged on every save; each page's
+Public pages stay cached until the next save, which purges and re-warms them; each page's
 `<meta name="content-version">` shows which save it is showing. Secrets live in Netlify and the
 macOS Keychain, never in the repository.
 

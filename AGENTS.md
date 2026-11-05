@@ -78,8 +78,9 @@ Upload, sizes, the Cloudflare Worker, switches, secrets and runbooks are all in
 
 ## Architecture notes
 
-- Public pages render from the latest content and are cached by Netlify's CDN for an hour under
-  the tag `rk-pages`; every admin save purges the tag (`src/lib/cdn.ts`). Do not go back to
+- Public pages render from the latest content and are cached by Netlify's CDN for a year under
+  the tag `rk-pages`; every admin save purges the tag (`src/lib/cdn.ts`) and re-requests the pages
+  (`src/lib/page-refresh.ts`). After a publish, run `node scripts/refresh-pages.mjs`. Do not go back to
   Next ISR (it served stale pages after a save).
 - Netlify function bodies are capped at about 6 MB: uploads are resized and EXIF-stripped in the
   browser first.
