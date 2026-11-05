@@ -33,14 +33,18 @@ describe("warmPictureCdn", () => {
     const sizes = [640, 960, 1280, 1920, 2400];
     const expected = [...sizes.map((w) => `${CDN}/${sizeKey(key, w)}`), `${CDN}/${key}`];
     const seen: string[] = [];
+    const responses: Response[] = [];
     globalThis.fetch = jest.fn(async (input: RequestInfo | URL) => {
       seen.push(String(input));
-      return new Response(null, { status: 200, headers: { "X-Image-Cache": "MISS" } });
+      const res = new Response(new Uint8Array([1, 2, 3]), { status: 200, headers: { "X-Image-Cache": "MISS" } });
+      responses.push(res);
+      return res;
     }) as typeof fetch;
 
     await warmPictureCdn({ key, width: 3000, height: 2000, alt: "", sizes });
 
     expect(seen.sort()).toEqual(expected.sort());
+    expect(responses.every((r) => r.bodyUsed)).toBe(true);
     expect(logEvent).toHaveBeenCalledWith(
       "warm",
       expect.objectContaining({ key, MISS: sizes.length + 1, ms: expect.any(Number) }),

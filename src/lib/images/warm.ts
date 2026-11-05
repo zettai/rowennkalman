@@ -21,6 +21,12 @@ export async function warmPictureCdn(image: ImageRef): Promise<void> {
       batch.map(async (url) => {
         try {
           const res = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS) });
+          try {
+            await res.arrayBuffer();
+          } catch {
+            counts.error = (counts.error ?? 0) + 1;
+            return;
+          }
           const label = res.headers.get("X-Image-Cache") ?? (res.ok ? "none" : `http-${res.status}`);
           counts[label] = (counts[label] ?? 0) + 1;
         } catch {
